@@ -1,6 +1,7 @@
 El sistema funciona como un árbol de predicciones escalonado (apuestas combinadas). A mayor nivel de detalle, mayor es el multiplicador de puntos (payout).
 Nivel 1: El Barómetro de la Relación (Estado base)
 
+
 - ¿Cuándo termina la relación?
     Franjas: Menos de 3 meses, Entre 3 y 6 meses, Antes de fin de año, Llegan a 2027+.
 - ¿Cómo se anuncia el fin?
@@ -38,3 +39,19 @@ Mecánica de puntos y economía del juego
 - El Salón de la Fama y la Vergüenza:
         - "Nostradamus del Salseo": Usuario con mayor ratio de aciertos en cuernos y fechas.
         - "Romántico Iluso": Usuario que más puntos ha perdido apostando a que parejas condenadas iban a durar.
+
+
+
+ -----------------------------
+
+ FUNCIONALIDADES
+ - Registrar usuarios para realizar apuestas: alta con validación de credenciales y asignación automática de un monedero de creditos virtuales de bienvenida.
+ - Apostar una apuesta ya creada:  selecciona una opción de un tipo de apuesta e introduce la cantidad de monedas.
+ - Añadir apuestas: Crear una nueva apuesta vinculada a una pareja.
+ - Añadir pruebas: Registro de una prueba
+ - Validar pruebas: un administrador revisa la prueba aprotada, si es verídica la aprueba y la apuesta cambia.
+ - Registar pareja
+ - Registrar persona
+ - Ver historial de apuestas
+ - Calculo dinámico de cuotas
+ - Pago de ganancias de la apuesta
