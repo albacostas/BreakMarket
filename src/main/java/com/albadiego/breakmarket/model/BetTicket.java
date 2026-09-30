@@ -1,12 +1,20 @@
 package com.albadiego.breakmarket.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.Instant;
 import java.util.UUID;
 
 @Entity
 @Table(name = "bet_tickets")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class BetTicket {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

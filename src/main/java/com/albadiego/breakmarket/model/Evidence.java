@@ -1,11 +1,20 @@
 package com.albadiego.breakmarket.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.Instant;
 import java.util.UUID;
 
 @Entity
+@Table(name = "evidences")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Evidence {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

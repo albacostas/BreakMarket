@@ -1,6 +1,10 @@
 package com.albadiego.breakmarket.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.Instant;
 import java.util.List;
@@ -8,6 +12,10 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "couples")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Couple {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -33,13 +41,4 @@ public class Couple {
             orphanRemoval = true
     )
     private List<Bet> betsInvolved;
-
-    public Couple() {}
-
-    public Couple(UUID uuid, String status, Instant startDate, Instant endDate) {
-        this.uuid = uuid;
-        this.status = status;
-        this.startDate = startDate;
-        this.endDate = endDate;
-    }
 }

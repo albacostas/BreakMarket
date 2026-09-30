@@ -1,14 +1,21 @@
 package com.albadiego.breakmarket.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
 @Entity
 @Table(name = "bets")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Bet {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -57,6 +64,4 @@ public class Bet {
             orphanRemoval = true
     )
     private List<Evidence> evidences;
-
-
 }

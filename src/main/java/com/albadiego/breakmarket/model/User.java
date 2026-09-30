@@ -1,6 +1,10 @@
 package com.albadiego.breakmarket.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -8,6 +12,10 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "users")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class User {
 
     // Define the default number of coins
@@ -56,16 +64,4 @@ public class User {
             orphanRemoval = true
     )
     private List<Evidence> reviewedEvidences;
-
-    public User() {}
-
-    public User(UUID uuid, String username, String password, String fullName, String email, Long coins, String role) {
-        this.uuid = uuid;
-        this.username = username;
-        this.password = password;
-        this.fullName = fullName;
-        this.email = email;
-        this.coins = DEFAULT_COINS;
-        this.role = role;
-    }
 }
