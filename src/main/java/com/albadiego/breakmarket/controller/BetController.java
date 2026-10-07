@@ -2,6 +2,9 @@ package com.albadiego.breakmarket.controller;
 
 import com.albadiego.breakmarket.dto.BetDto;
 import com.albadiego.breakmarket.dto.CreateBetDto;
+import com.albadiego.breakmarket.exceptions.BetNotFoundException;
+import com.albadiego.breakmarket.exceptions.CoupleNotFoundException;
+import com.albadiego.breakmarket.exceptions.UserNotFoundException;
 import com.albadiego.breakmarket.service.BetService;
 import com.albadiego.breakmarket.utils.JsonPatchOperation;
 import jakarta.validation.Valid;
@@ -26,18 +29,18 @@ public class BetController {
     }
 
     @GetMapping("/{uuid}")
-    public ResponseEntity<BetDto> getBetById(@PathVariable UUID uuid) {
+    public ResponseEntity<BetDto> getBetById(@PathVariable UUID uuid) throws BetNotFoundException {
         return ResponseEntity.ok(betService.findById(uuid));
     }
 
     @PostMapping
-    public ResponseEntity<BetDto> createBet(@Valid @RequestBody CreateBetDto createBetDto) {
+    public ResponseEntity<BetDto> createBet(@Valid @RequestBody CreateBetDto createBetDto) throws UserNotFoundException, CoupleNotFoundException {
         BetDto created = betService.createBet(createBetDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     @PatchMapping("/{uuid}")
-    public ResponseEntity<BetDto> updateBet(@PathVariable UUID uuid, @RequestBody List<JsonPatchOperation> changes) {
+    public ResponseEntity<BetDto> updateBet(@PathVariable UUID uuid, @RequestBody List<JsonPatchOperation> changes) throws BetNotFoundException {
         return ResponseEntity.ok(betService.updateBet(uuid, changes));
     }
 }

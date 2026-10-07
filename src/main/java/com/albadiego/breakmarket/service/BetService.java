@@ -2,6 +2,9 @@ package com.albadiego.breakmarket.service;
 
 import com.albadiego.breakmarket.dto.BetDto;
 import com.albadiego.breakmarket.dto.CreateBetDto;
+import com.albadiego.breakmarket.exceptions.BetNotFoundException;
+import com.albadiego.breakmarket.exceptions.CoupleNotFoundException;
+import com.albadiego.breakmarket.exceptions.UserNotFoundException;
 import com.albadiego.breakmarket.model.Bet;
 import com.albadiego.breakmarket.model.Couple;
 import com.albadiego.breakmarket.model.User;
@@ -38,19 +41,19 @@ public class BetService {
     }
 
     @Transactional(readOnly = true)
-    public BetDto findById(UUID uuid) {
+    public BetDto findById(UUID uuid) throws BetNotFoundException {
         return betRepository.findById(uuid)
                 .map(this::toDto)
-                .orElseThrow(() -> new NoSuchElementException("Apuesta no encontrada: " + uuid));
+                .orElseThrow(() -> new BetNotFoundException(uuid));
     }
 
     @Transactional
-    public BetDto createBet(CreateBetDto dto) {
+    public BetDto createBet(CreateBetDto dto) throws UserNotFoundException, CoupleNotFoundException {
         User creator = userRepository.findById(dto.creatorUuid())
-                .orElseThrow(() -> new NoSuchElementException("Usuario creador no encontrado"));
+                .orElseThrow(() -> new UserNotFoundException(dto.creatorUuid()));
 
         Couple couple = coupleRepository.findById(dto.coupleUuid())
-                .orElseThrow(() -> new NoSuchElementException("Pareja no encontrada"));
+                .orElseThrow(() -> new CoupleNotFoundException(dto.coupleUuid()));
 
         Bet bet = new Bet();
         bet.setCreator(creator);
@@ -65,9 +68,9 @@ public class BetService {
         return toDto(saved);
     }
 
-    public BetDto updateBet(UUID uuid, List<JsonPatchOperation> changes) {
+    public BetDto updateBet(UUID uuid, List<JsonPatchOperation> changes) throws BetNotFoundException {
         // Buscar la apuesta dentro de la base de datos por UUID
-        Bet bet = betRepository.findById(uuid).orElseThrow(() -> new NoSuchElementException("Apuesta no encontrada: " + uuid));
+        Bet bet = betRepository.findById(uuid).orElseThrow(() -> new BetNotFoundException(uuid));
 
         // Aplicar los cambios de JSON Patch
         JsonNode patched = JsonPatch.apply(changes, mapper.convertValue(bet, JsonNode.class));
