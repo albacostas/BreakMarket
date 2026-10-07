@@ -8,9 +8,13 @@ import com.albadiego.breakmarket.model.User;
 import com.albadiego.breakmarket.repository.BetRepository;
 import com.albadiego.breakmarket.repository.CoupleRepository;
 import com.albadiego.breakmarket.repository.UserRepository;
+import com.albadiego.breakmarket.utils.JsonPatch;
+import com.albadiego.breakmarket.utils.JsonPatchOperation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.time.Instant;
 import java.util.List;
@@ -24,6 +28,7 @@ public class BetService {
     private final BetRepository betRepository;
     private final UserRepository userRepository;
     private final CoupleRepository coupleRepository;
+    private final JsonMapper mapper;
 
     @Transactional(readOnly = true)
     public List<BetDto> findAllOpenBets() {
@@ -57,6 +62,20 @@ public class BetService {
         bet.setEndDate(dto.endDate());
 
         Bet saved = betRepository.save(bet);
+        return toDto(saved);
+    }
+
+    public BetDto updateBet(UUID uuid, List<JsonPatchOperation> changes) {
+        // Buscar la apuesta dentro de la base de datos por UUID
+        Bet bet = betRepository.findById(uuid).orElseThrow(() -> new NoSuchElementException("Apuesta no encontrada: " + uuid));
+
+        // Aplicar los cambios de JSON Patch
+        JsonNode patched = JsonPatch.apply(changes, mapper.convertValue(bet, JsonNode.class));
+
+        // Actualizar la apuesta tras aplicar los cambios
+        Bet updated = mapper.convertValue(patched, Bet.class);
+        Bet saved =  betRepository.save(updated);
+
         return toDto(saved);
     }
 

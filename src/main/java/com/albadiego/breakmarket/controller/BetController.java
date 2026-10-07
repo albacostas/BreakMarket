@@ -3,6 +3,7 @@ package com.albadiego.breakmarket.controller;
 import com.albadiego.breakmarket.dto.BetDto;
 import com.albadiego.breakmarket.dto.CreateBetDto;
 import com.albadiego.breakmarket.service.BetService;
+import com.albadiego.breakmarket.utils.JsonPatchOperation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -33,5 +34,10 @@ public class BetController {
     public ResponseEntity<BetDto> createBet(@Valid @RequestBody CreateBetDto createBetDto) {
         BetDto created = betService.createBet(createBetDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    }
+
+    @PatchMapping("/{uuid}")
+    public ResponseEntity<BetDto> updateBet(@PathVariable UUID uuid, @RequestBody List<JsonPatchOperation> changes) {
+        return ResponseEntity.ok(betService.updateBet(uuid, changes));
     }
 }
