@@ -7,6 +7,6 @@ import java.util.UUID;
 
 @AllArgsConstructor
 @Getter
-public class BetNotFoundException extends Exception {
+public class BetNotFoundException extends RuntimeException {
     private final UUID uuid;
 }
