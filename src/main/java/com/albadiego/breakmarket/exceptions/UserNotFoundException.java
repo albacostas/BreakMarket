@@ -7,6 +7,6 @@ import java.util.UUID;
 
 @AllArgsConstructor
 @Getter
-public class UserNotFoundException extends Exception {
+public class UserNotFoundException extends RuntimeException {
     private final UUID uuid;
 }
