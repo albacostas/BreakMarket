@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.ColumnDefault;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -14,7 +15,6 @@ import java.util.UUID;
 @Table(name = "users")
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
 public class User {
 
@@ -64,4 +64,9 @@ public class User {
             orphanRemoval = true
     )
     private List<Evidence> reviewedEvidences;
+
+    // Create a default constructor that sets the initial number of coins
+    public User(){
+        this.coins = DEFAULT_COINS;
+    }
 }
