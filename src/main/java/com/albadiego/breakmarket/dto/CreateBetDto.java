@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import java.time.Instant;
 import java.util.UUID;
 
+
 /*
     Recoger los datos para publicar una nueva apuesta.
 */
