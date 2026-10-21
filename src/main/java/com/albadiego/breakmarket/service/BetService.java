@@ -13,8 +13,10 @@ import com.albadiego.breakmarket.repository.BetRepository;
 import com.albadiego.breakmarket.repository.CoupleRepository;
 import com.albadiego.breakmarket.repository.PersonRepository;
 import com.albadiego.breakmarket.repository.UserRepository;
-import com.albadiego.breakmarket.utils.JsonPatch;
-import com.albadiego.breakmarket.utils.JsonPatchOperation;
+import com.albadiego.breakmarket.utils.patch.JsonPatch;
+import com.albadiego.breakmarket.utils.patch.JsonPatchOperation;
+import com.albadiego.breakmarket.utils.specifications.BetSpecification;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.JsonNode;
@@ -23,6 +25,7 @@ import tools.jackson.databind.json.JsonMapper;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -140,6 +143,26 @@ public class BetService {
         Bet saved =  betRepository.save(updated);
 
         return toDto(saved);
+    }
+
+    public List<BetDto> filterBets(UUID coupleId, UUID authorId, String description, String type, Date startDate) {
+        // Crear una Specification que combine los parámetros que no sean nulos de todos los posibles
+        Specification<Bet> coupleFilter = BetSpecification.betCoupleUuidEquals(coupleId);
+        Specification<Bet> descriptionFilter = BetSpecification.betDescriptionEquals(description);
+        Specification<Bet> creatorFilter = BetSpecification.betCreatorUuidEquals(authorId);
+        Specification<Bet> typeFilter = BetSpecification.betTypeEquals(type);
+
+        // TODO - Añadir el filtro de la fecha
+
+        Specification<Bet> specification = Specification.where(coupleFilter).and(descriptionFilter).and(creatorFilter).and(typeFilter);
+
+        // Buscar apuestas dentro de la base de datos dependiendo de los parámetros que se hayan especificado
+        List<Bet> results = betRepository.findAll(specification);
+
+        return results
+                .stream()
+                .map(this::toDto)
+                .toList();
     }
 
     private BetDto toDto(Bet bet) {

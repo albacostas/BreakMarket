@@ -6,12 +6,16 @@ import com.albadiego.breakmarket.exceptions.EmailAlreadyUsedException;
 import com.albadiego.breakmarket.exceptions.GeneralConstraintViolationException;
 import com.albadiego.breakmarket.exceptions.UserNotFoundException;
 import com.albadiego.breakmarket.exceptions.UsernameAlreadyUsedException;
+import com.albadiego.breakmarket.model.Person;
 import com.albadiego.breakmarket.model.User;
 import com.albadiego.breakmarket.repository.UserRepository;
-import com.albadiego.breakmarket.utils.JsonPatch;
-import com.albadiego.breakmarket.utils.JsonPatchOperation;
+import com.albadiego.breakmarket.utils.patch.JsonPatch;
+import com.albadiego.breakmarket.utils.patch.JsonPatchOperation;
+import com.albadiego.breakmarket.utils.specifications.PeopleSpecification;
+import com.albadiego.breakmarket.utils.specifications.UserSpecification;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -28,9 +32,17 @@ public class UserService {
     private final ObjectMapper mapper;
 
     @Transactional(readOnly = true)
-    public List<UserDto> findAllUsers() {
-        return userRepository
-                .findAll()
+    public List<UserDto> findAllUsers(String fullName, String username) {
+        // Crear el filtro de personas por nombre
+        Specification<User> fullNameFilter = UserSpecification.userNameEquals(fullName);
+        Specification<User> usernameFilter = UserSpecification.userUsernameEquals(username);
+
+        Specification<User> specification = Specification.where(fullNameFilter).and(usernameFilter);
+
+        List<User> results = userRepository.findAll(specification);
+
+        // Devolver los resultados como DTO
+        return results
                 .stream()
                 .map(this::toDto)
                 .toList();

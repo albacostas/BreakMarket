@@ -1,18 +1,24 @@
 package com.albadiego.breakmarket.service;
 
+import com.albadiego.breakmarket.dto.EvidenceDto;
 import com.albadiego.breakmarket.exceptions.BetNotFoundException;
 import com.albadiego.breakmarket.exceptions.EvidenceNotFoundException;
 import com.albadiego.breakmarket.exceptions.UserNotFoundException;
 import com.albadiego.breakmarket.model.Bet;
+import com.albadiego.breakmarket.model.Couple;
 import com.albadiego.breakmarket.model.Evidence;
 import com.albadiego.breakmarket.model.User;
 import com.albadiego.breakmarket.repository.BetRepository;
 import com.albadiego.breakmarket.repository.EvidenceRepository;
 import com.albadiego.breakmarket.repository.UserRepository;
+import com.albadiego.breakmarket.utils.specifications.CoupleSpecification;
+import com.albadiego.breakmarket.utils.specifications.EvidenceSpecification;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -34,24 +40,53 @@ public class EvidenceService {
     }
 
     @Transactional(readOnly = true)
-    public Evidence findById(UUID uuid) {
-        return evidenceRepository.findById(uuid)
+    public List<EvidenceDto> findAll(String state, UUID betID, Date submittedDate) {
+        // Crear una Specification que combine los parámetros que no sean nulos de todos los posibles
+        Specification<Evidence> stateFilter = EvidenceSpecification.evidenceStateEquals(state);
+        Specification<Evidence> betIDFilter = EvidenceSpecification.evidenceBetUuidEquals(betID);
+
+        // TODO - Añadir el filtro de la fecha
+
+        Specification<Evidence> specification = Specification.where(stateFilter).and(betIDFilter);
+
+        List<Evidence> results =  evidenceRepository.findAll(specification);
+
+        // Devolver los resultados como DTO
+        return results
+                .stream()
+                .map(this::toDto)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public EvidenceDto findById(UUID uuid) {
+        return evidenceRepository
+                .findById(uuid)
+                .map(this::toDto)
                 .orElseThrow(() -> new EvidenceNotFoundException(uuid));
     }
 
     @Transactional(readOnly = true)
-    public List<Evidence> findByBet(UUID betUuid) {
+    public List<EvidenceDto> findByBet(UUID betUuid) {
         requireBet(betUuid);
-        return evidenceRepository.findByBetUuid(betUuid);
+        return evidenceRepository
+                .findByBetUuid(betUuid)
+                .stream()
+                .map(this::toDto)
+                .toList();
     }
 
     @Transactional(readOnly = true)
-    public List<Evidence> findPending() {
-        return evidenceRepository.findByState("PENDING");
+    public List<EvidenceDto> findPending() {
+        return evidenceRepository
+                .findByState("PENDING")
+                .stream()
+                .map(this::toDto)
+                .toList();
     }
 
     @Transactional
-    public Evidence submit(UUID betUuid, UUID authorUuid, String comment) {
+    public EvidenceDto submit(UUID betUuid, UUID authorUuid, String comment) {
         Bet bet = requireBet(betUuid);
         User author = requireUser(authorUuid);
         if (comment == null || comment.isBlank()) {
@@ -64,22 +99,26 @@ public class EvidenceService {
         evidence.setComment(comment);
         evidence.setSubmittedDate(Instant.now());
         evidence.setState("PENDING");
-        return evidenceRepository.save(evidence);
+        return toDto(evidenceRepository.save(evidence));
     }
 
     @Transactional
-    public Evidence review(UUID uuid, UUID reviewerUuid, String state) {
+    public EvidenceDto review(UUID uuid, UUID reviewerUuid, String state) {
         User reviewer = requireUser(reviewerUuid);
         if (state == null || (!"APPROVED".equalsIgnoreCase(state)
                 && !"REJECTED".equalsIgnoreCase(state))) {
             throw new IllegalArgumentException("Review state must be APPROVED or REJECTED");
         }
 
-        Evidence evidence = findById(uuid);
+        // Comprobar si el UUID corresponde a una prueba existente
+        Evidence evidence = evidenceRepository
+                .findById(uuid)
+                .orElseThrow( () -> new EvidenceNotFoundException(uuid));
+
         evidence.setReviewer(reviewer);
         evidence.setReviewedDate(Instant.now());
         evidence.setState(state.toUpperCase());
-        return evidenceRepository.save(evidence);
+        return toDto(evidenceRepository.save(evidence));
     }
 
     private Bet requireBet(UUID uuid) {
@@ -90,5 +129,16 @@ public class EvidenceService {
     private User requireUser(UUID uuid) {
         return userRepository.findById(uuid)
                 .orElseThrow(() -> new UserNotFoundException(uuid));
+    }
+
+    private EvidenceDto toDto(Evidence evidence) {
+        return new EvidenceDto(
+                evidence.getUuid(),
+                evidence.getBet().getUuid(),
+                evidence.getAuthor().getUuid(),
+                evidence.getComment(),
+                evidence.getSubmittedDate(),
+                evidence.getState()
+        );
     }
 }

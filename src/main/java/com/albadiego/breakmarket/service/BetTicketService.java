@@ -1,5 +1,6 @@
 package com.albadiego.breakmarket.service;
 
+import com.albadiego.breakmarket.dto.BetTicketDto;
 import com.albadiego.breakmarket.exceptions.BetNotFoundException;
 import com.albadiego.breakmarket.exceptions.BetOptionNotFoundException;
 import com.albadiego.breakmarket.exceptions.BetTicketNotFoundException;
@@ -12,11 +13,15 @@ import com.albadiego.breakmarket.repository.BetRepository;
 import com.albadiego.breakmarket.repository.BetOptionRepository;
 import com.albadiego.breakmarket.repository.BetTicketRepository;
 import com.albadiego.breakmarket.repository.UserRepository;
+import com.albadiego.breakmarket.utils.specifications.BetSpecification;
+import com.albadiego.breakmarket.utils.specifications.TicketSpecification;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -52,9 +57,25 @@ public class BetTicketService {
     }
 
     @Transactional(readOnly = true)
-    public List<BetTicket> findByBet(UUID betUuid) {
+    public List<BetTicketDto> findByBet(UUID betUuid, Date date, UUID authorID, String option) {
+        // Obligar a que se especifique un bet UUID
         requireBet(betUuid);
-        return ticketRepository.findByBetUuid(betUuid);
+
+        // Crear una Specification que combine los parámetros que no sean nulos de todos los posibles
+        Specification<BetTicket> authorFilter = TicketSpecification.ticketUserUuidEquals(authorID);
+        Specification<BetTicket> optionFilter = TicketSpecification.ticketOptionTypeEquals(option);
+
+        // TODO - Añadir el filtro de la fecha
+
+        Specification<BetTicket> specification = Specification.where(authorFilter).and(optionFilter);
+
+        List<BetTicket> results =  ticketRepository.findAll(specification);
+
+        // Devolver los resultados como DTO
+        return results
+                .stream()
+                .map(this::toDto)
+                .toList();
     }
 
     @Transactional
@@ -114,5 +135,18 @@ public class BetTicketService {
     private Bet requireBet(UUID uuid) {
         return betRepository.findById(uuid)
                 .orElseThrow(() -> new BetNotFoundException(uuid));
+    }
+
+    private BetTicketDto toDto(BetTicket ticket) {
+        return new BetTicketDto(
+                ticket.getUuid(),
+                ticket.getUser().getUuid(),
+                ticket.getBet().getUuid(),
+                ticket.getOption().getUuid(),
+                ticket.getRate(),
+                ticket.getQuantity(),
+                ticket.getState(),
+                ticket.getCreatedDate()
+        );
     }
 }

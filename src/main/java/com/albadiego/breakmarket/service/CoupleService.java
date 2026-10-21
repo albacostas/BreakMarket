@@ -2,14 +2,18 @@ package com.albadiego.breakmarket.service;
 
 import com.albadiego.breakmarket.dto.*;
 import com.albadiego.breakmarket.exceptions.*;
+import com.albadiego.breakmarket.model.BetTicket;
 import com.albadiego.breakmarket.model.Couple;
 import com.albadiego.breakmarket.model.Person;
 import com.albadiego.breakmarket.repository.CoupleRepository;
 import com.albadiego.breakmarket.repository.PersonRepository;
-import com.albadiego.breakmarket.utils.JsonPatch;
-import com.albadiego.breakmarket.utils.JsonPatchOperation;
+import com.albadiego.breakmarket.utils.patch.JsonPatch;
+import com.albadiego.breakmarket.utils.patch.JsonPatchOperation;
+import com.albadiego.breakmarket.utils.specifications.CoupleSpecification;
+import com.albadiego.breakmarket.utils.specifications.TicketSpecification;
 import lombok.AllArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.JsonNode;
@@ -26,9 +30,22 @@ public class CoupleService {
     private final ObjectMapper mapper;
 
     @Transactional(readOnly = true)
-    public List<CoupleDto> findAllCouples() {
-        return coupleRepository
-                .findAll()
+    public List<CoupleDto> findCouples(
+            String firstMember,
+            String secondMember
+    ) {
+        // Crear una Specification que combine los parámetros que no sean nulos de todos los posibles
+        Specification<Couple> firstMemberFilter = CoupleSpecification.coupleMemberEquals(firstMember);
+        Specification<Couple> secondMemberFilter = CoupleSpecification.coupleMemberEquals(secondMember);
+
+        // TODO - Añadir el filtro de la fecha
+
+        Specification<Couple> specification = Specification.where(firstMemberFilter).and(secondMemberFilter);
+
+        List<Couple> results =  coupleRepository.findAll(specification);
+
+        // Devolver los resultados como DTO
+        return results
                 .stream()
                 .map(this::toDto)
                 .toList();

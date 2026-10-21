@@ -1,4 +1,4 @@
-package com.albadiego.breakmarket.utils;
+package com.albadiego.breakmarket.utils.patch;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 

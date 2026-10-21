@@ -1,4 +1,4 @@
-package com.albadiego.breakmarket.utils;
+package com.albadiego.breakmarket.utils.patch;
 
 import com.albadiego.breakmarket.utils.exceptions.JsonPatchFailedException;
 import tools.jackson.core.JsonPointer;

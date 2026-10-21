@@ -6,10 +6,8 @@ import com.albadiego.breakmarket.exceptions.EmailAlreadyUsedException;
 import com.albadiego.breakmarket.exceptions.GeneralConstraintViolationException;
 import com.albadiego.breakmarket.exceptions.UserNotFoundException;
 import com.albadiego.breakmarket.exceptions.UsernameAlreadyUsedException;
-import com.albadiego.breakmarket.model.Bet;
-import com.albadiego.breakmarket.model.User;
 import com.albadiego.breakmarket.service.UserService;
-import com.albadiego.breakmarket.utils.JsonPatchOperation;
+import com.albadiego.breakmarket.utils.patch.JsonPatchOperation;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,8 +22,11 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping
-    public ResponseEntity<List<UserDto>> getAllUsers() {
-        return ResponseEntity.ok(userService.findAllUsers());
+    public ResponseEntity<List<UserDto>> getAllUsers(
+            @RequestParam(required = false) String fullName,
+            @RequestParam(required = false) String username
+    ) {
+        return ResponseEntity.ok(userService.findAllUsers(fullName, username));
     }
 
     @GetMapping("/{uuid}")

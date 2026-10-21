@@ -1,20 +1,18 @@
 package com.albadiego.breakmarket.service;
 
 import com.albadiego.breakmarket.dto.CreatePersonDto;
-import com.albadiego.breakmarket.dto.CreateUserDto;
 import com.albadiego.breakmarket.dto.PersonDto;
-import com.albadiego.breakmarket.dto.UserDto;
 import com.albadiego.breakmarket.exceptions.*;
+import com.albadiego.breakmarket.model.Evidence;
 import com.albadiego.breakmarket.model.Person;
-import com.albadiego.breakmarket.model.User;
 import com.albadiego.breakmarket.repository.PersonRepository;
-import com.albadiego.breakmarket.utils.JsonPatch;
-import com.albadiego.breakmarket.utils.JsonPatchOperation;
+import com.albadiego.breakmarket.utils.specifications.EvidenceSpecification;
+import com.albadiego.breakmarket.utils.specifications.PeopleSpecification;
 import lombok.AllArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
@@ -27,9 +25,16 @@ public class PersonService {
     private final ObjectMapper mapper;
 
     @Transactional(readOnly = true)
-    public List<PersonDto> findAllPeople() {
-        return personRepository
-                .findAll()
+    public List<PersonDto> findAllPeople(String fullName) {
+        // Crear el filtro de personas por nombre
+        Specification<Person> fullNameFilter = PeopleSpecification.personNameEquals(fullName);
+
+        Specification<Person> specification = Specification.where(fullNameFilter);
+
+        List<Person> results =  personRepository.findAll(specification);
+
+        // Devolver los resultados como DTO
+        return results
                 .stream()
                 .map(this::toDto)
                 .toList();

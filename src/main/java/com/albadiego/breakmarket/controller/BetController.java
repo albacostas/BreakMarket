@@ -1,6 +1,7 @@
 package com.albadiego.breakmarket.controller;
 
 import com.albadiego.breakmarket.dto.BetDto;
+import com.albadiego.breakmarket.dto.BetTicketDto;
 import com.albadiego.breakmarket.dto.CreateBetDto;
 import com.albadiego.breakmarket.exceptions.BetNotFoundException;
 import com.albadiego.breakmarket.exceptions.CoupleNotFoundException;
@@ -10,13 +11,14 @@ import com.albadiego.breakmarket.model.BetTicket;
 import com.albadiego.breakmarket.service.BetOptionService;
 import com.albadiego.breakmarket.service.BetService;
 import com.albadiego.breakmarket.service.BetTicketService;
-import com.albadiego.breakmarket.utils.JsonPatchOperation;
+import com.albadiego.breakmarket.utils.patch.JsonPatchOperation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -30,8 +32,14 @@ public class BetController {
     private final BetTicketService betTicketService;
 
     @GetMapping
-    public ResponseEntity<List<BetDto>> getOpenBets() {
-        return ResponseEntity.ok(betService.findAllOpenBets());
+    public ResponseEntity<List<BetDto>> getBets(
+            @RequestParam(required = false) UUID coupleId,
+            @RequestParam(required = false) UUID authorId,
+            @RequestParam(required = false) String description,
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) Date startDate
+    ) {
+        return ResponseEntity.ok(betService.filterBets(coupleId, authorId, description, type, startDate));
     }
 
     @GetMapping("/{uuid}")
@@ -83,8 +91,13 @@ public class BetController {
     }
 
     @GetMapping("/{betUuid}/tickets")
-    public ResponseEntity<List<BetTicket>> getBetTickets(@PathVariable UUID betUuid) {
-        return ResponseEntity.ok(betTicketService.findByBet(betUuid));
+    public ResponseEntity<List<BetTicketDto>> getBetTickets(
+            @PathVariable UUID betUuid,
+            @RequestParam(required = false) Date date,
+            @RequestParam(required = false) UUID authorID,
+            @RequestParam(required = false) String option
+    ) {
+        return ResponseEntity.ok(betTicketService.findByBet(betUuid, date, authorID, option));
     }
 
     @PostMapping("/{betUuid}/tickets")

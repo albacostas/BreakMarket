@@ -18,8 +18,10 @@ public class PersonController {
     private final PersonService personService;
 
     @GetMapping
-    public ResponseEntity<List<PersonDto>> getAllPeople() {
-        return ResponseEntity.ok(personService.findAllPeople());
+    public ResponseEntity<List<PersonDto>> getAllPeople(
+            @RequestParam(required = false) String fullName
+    ) {
+        return ResponseEntity.ok(personService.findAllPeople(fullName));
     }
 
     @GetMapping("/{uuid}")
