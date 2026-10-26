@@ -22,9 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 
-import java.math.BigDecimal;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -51,49 +49,6 @@ public class BetService {
         this.personRepository = personRepository;
         this.mapper = mapper;
 
-        seedInitialData();
-    }
-
-    private void seedInitialData() {
-        User admin = userRepository.findByEmail("admin@breakmarket.com")
-                .orElseGet(() -> {
-                    User user = new User();
-                    user.setUsername("admin");
-                    user.setPassword("admin");
-                    user.setFullName("Administrador");
-                    user.setEmail("admin@breakmarket.com");
-                    user.setCoins(BigDecimal.valueOf(1000));
-                    user.setRole("ADMIN");
-                    return userRepository.save(user);
-                });
-
-        if (coupleRepository.count() == 0) {
-            Person personA = new Person();
-            personA.setFullName("Ana García");
-            personA = personRepository.save(personA);
-
-            Person personB = new Person();
-            personB.setFullName("Luis Pérez");
-            personB = personRepository.save(personB);
-
-            Couple couple = new Couple();
-            couple.setStatus("ACTIVE");
-            couple.setStartDate(Instant.now());
-            couple.setPersonA(personA);
-            couple.setPersonB(personB);
-            couple = coupleRepository.save(couple);
-
-            Bet bet = new Bet();
-            bet.setCreator(admin);
-            bet.setCouple(couple);
-            bet.setType("RELATIONSHIP");
-            bet.setDescription("¿Seguirán Ana y Luis juntos al finalizar el año?");
-            bet.setState("OPEN");
-            bet.setStartDate(Instant.now());
-            bet.setEndDate(Instant.now().plus(30, ChronoUnit.DAYS));
-
-            betRepository.save(bet);
-        }
     }
 
     @Transactional(readOnly = true)
