@@ -4,6 +4,7 @@ import com.albadiego.breakmarket.model.Bet;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.UUID;
+import java.util.Date;
 
 public class BetSpecification {
 
@@ -52,5 +53,17 @@ public class BetSpecification {
                 return builder.equal(root.get("type"), type);
             }
         };
+    }
+
+    public static Specification<Bet> betStateEquals(String state) {
+        return (root, query, builder) -> state == null
+                ? builder.conjunction()
+                : builder.equal(root.get("state"), state);
+    }
+
+    public static Specification<Bet> betStartDateAfterOrEqual(Date startDate) {
+        return (root, query, builder) -> startDate == null
+                ? builder.conjunction()
+                : builder.greaterThanOrEqualTo(root.get("startDate"), startDate.toInstant());
     }
 }

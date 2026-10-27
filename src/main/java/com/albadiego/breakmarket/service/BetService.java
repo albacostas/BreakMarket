@@ -1,11 +1,13 @@
 package com.albadiego.breakmarket.service;
 
 import com.albadiego.breakmarket.dto.BetDto;
+import com.albadiego.breakmarket.dto.CreateBetOptionDto;
 import com.albadiego.breakmarket.dto.CreateBetDto;
 import com.albadiego.breakmarket.exceptions.BetNotFoundException;
 import com.albadiego.breakmarket.exceptions.CoupleNotFoundException;
 import com.albadiego.breakmarket.exceptions.UserNotFoundException;
 import com.albadiego.breakmarket.model.Bet;
+import com.albadiego.breakmarket.model.BetOption;
 import com.albadiego.breakmarket.model.Couple;
 import com.albadiego.breakmarket.model.Person;
 import com.albadiego.breakmarket.model.User;
@@ -24,6 +26,7 @@ import tools.jackson.databind.json.JsonMapper;
 
 import java.time.Instant;
 import java.util.Date;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -81,8 +84,22 @@ public class BetService {
         bet.setState("OPEN");
         bet.setStartDate(Instant.now());
         bet.setEndDate(dto.endDate());
+        bet.setBetOptions(new ArrayList<>());
 
         Bet saved = betRepository.save(bet);
+        if (dto.options() != null) {
+            for (CreateBetOptionDto optionDto : dto.options()) {
+                BetOption option = new BetOption();
+                option.setBet(saved);
+                option.setDescription(optionDto.description());
+                option.setCurrent_rate(optionDto.currentRate());
+                option.setTotal_pool(java.math.BigDecimal.ZERO);
+                saved.getBetOptions().add(option);
+            }
+        }
+        if (saved.getBetOptions() != null && !saved.getBetOptions().isEmpty()) {
+            betRepository.save(saved);
+        }
         return toDto(saved);
     }
 
@@ -100,16 +117,28 @@ public class BetService {
         return toDto(saved);
     }
 
-    public List<BetDto> filterBets(UUID coupleId, UUID authorId, String description, String type, Date startDate) {
+    public List<BetDto> filterBets(
+            UUID coupleId,
+            UUID authorId,
+            String description,
+            String type,
+            String state,
+            Date startDate
+    ) {
         // Crear una Specification que combine los parámetros que no sean nulos de todos los posibles
         Specification<Bet> coupleFilter = BetSpecification.betCoupleUuidEquals(coupleId);
         Specification<Bet> descriptionFilter = BetSpecification.betDescriptionEquals(description);
         Specification<Bet> creatorFilter = BetSpecification.betCreatorUuidEquals(authorId);
         Specification<Bet> typeFilter = BetSpecification.betTypeEquals(type);
+        Specification<Bet> stateFilter = BetSpecification.betStateEquals(state);
+        Specification<Bet> startDateFilter = BetSpecification.betStartDateAfterOrEqual(startDate);
 
-        // TODO - Añadir el filtro de la fecha
-
-        Specification<Bet> specification = Specification.where(coupleFilter).and(descriptionFilter).and(creatorFilter).and(typeFilter);
+        Specification<Bet> specification = Specification.where(coupleFilter)
+                .and(descriptionFilter)
+                .and(creatorFilter)
+                .and(typeFilter)
+                .and(stateFilter)
+                .and(startDateFilter);
 
         // Buscar apuestas dentro de la base de datos dependiendo de los parámetros que se hayan especificado
         List<Bet> results = betRepository.findAll(specification);

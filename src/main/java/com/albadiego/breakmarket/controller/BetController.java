@@ -3,6 +3,7 @@ package com.albadiego.breakmarket.controller;
 import com.albadiego.breakmarket.dto.BetDto;
 import com.albadiego.breakmarket.dto.BetTicketDto;
 import com.albadiego.breakmarket.dto.CreateBetDto;
+import com.albadiego.breakmarket.dto.EvidenceDto;
 import com.albadiego.breakmarket.exceptions.BetNotFoundException;
 import com.albadiego.breakmarket.exceptions.CoupleNotFoundException;
 import com.albadiego.breakmarket.exceptions.UserNotFoundException;
@@ -11,6 +12,7 @@ import com.albadiego.breakmarket.model.BetTicket;
 import com.albadiego.breakmarket.service.BetOptionService;
 import com.albadiego.breakmarket.service.BetService;
 import com.albadiego.breakmarket.service.BetTicketService;
+import com.albadiego.breakmarket.service.EvidenceService;
 import com.albadiego.breakmarket.utils.patch.JsonPatchOperation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +35,7 @@ public class BetController {
     private final BetService betService;
     private final BetOptionService betOptionService;
     private final BetTicketService betTicketService;
+    private final EvidenceService evidenceService;
 
     @GetMapping
     public ResponseEntity<List<BetDto>> getBets(
@@ -40,10 +43,11 @@ public class BetController {
             @RequestParam(required = false) UUID authorId,
             @RequestParam(required = false) String description,
             @RequestParam(required = false) String type,
+            @RequestParam(required = false) String state,
             @RequestParam(required = false) Date startDate
     ) {
         return ResponseEntity.ok().headers(jsonHeaders())
-                .body(betService.filterBets(coupleId, authorId, description, type, startDate));
+                .body(betService.filterBets(coupleId, authorId, description, type, state, startDate));
     }
 
     @GetMapping("/{uuid}")
@@ -76,6 +80,22 @@ public class BetController {
             @RequestParam java.math.BigDecimal currentRate) {
         BetOption created = betOptionService.create(betUuid, description, currentRate);
         return ResponseEntity.created(location(created.getUuid()))
+                .headers(jsonHeaders())
+                .body(created);
+    }
+
+    @GetMapping("/{betUuid}/evidence")
+    public ResponseEntity<List<EvidenceDto>> getBetEvidence(@PathVariable UUID betUuid) {
+        return ResponseEntity.ok().headers(jsonHeaders()).body(evidenceService.findByBet(betUuid));
+    }
+
+    @PostMapping("/{betUuid}/evidence")
+    public ResponseEntity<EvidenceDto> submitBetEvidence(
+            @PathVariable UUID betUuid,
+            @RequestParam UUID authorUuid,
+            @RequestParam String comment) {
+        EvidenceDto created = evidenceService.submit(betUuid, authorUuid, comment);
+        return ResponseEntity.created(location(created.uuid()))
                 .headers(jsonHeaders())
                 .body(created);
     }

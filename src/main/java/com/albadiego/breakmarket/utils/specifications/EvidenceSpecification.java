@@ -4,6 +4,7 @@ import com.albadiego.breakmarket.model.Evidence;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.UUID;
+import java.util.Date;
 
 public class EvidenceSpecification {
 
@@ -27,5 +28,11 @@ public class EvidenceSpecification {
                 return builder.equal(root.get("bet").get("uuid"), evidenceUuid);
             }
         };
+    }
+
+    public static Specification<Evidence> evidenceSubmittedDateAfterOrEqual(Date submittedDate) {
+        return (root, query, builder) -> submittedDate == null
+                ? builder.conjunction()
+                : builder.greaterThanOrEqualTo(root.get("submittedDate"), submittedDate.toInstant());
     }
 }

@@ -36,27 +36,6 @@ public class EvidenceController {
         return ResponseEntity.ok().headers(jsonHeaders()).body(evidenceService.findById(uuid));
     }
 
-    @GetMapping("/bet/{betUuid}")
-    public ResponseEntity<List<EvidenceDto>> getEvidenceByBet(@PathVariable UUID betUuid) {
-        return ResponseEntity.ok().headers(jsonHeaders()).body(evidenceService.findByBet(betUuid));
-    }
-
-    @GetMapping("/pending")
-    public ResponseEntity<List<EvidenceDto>> getPendingEvidence() {
-        return ResponseEntity.ok().headers(jsonHeaders()).body(evidenceService.findPending());
-    }
-
-    @PostMapping
-    public ResponseEntity<EvidenceDto> submitEvidence(
-            @RequestParam UUID betUuid,
-            @RequestParam UUID authorUuid,
-            @RequestParam String comment) {
-        EvidenceDto created = evidenceService.submit(betUuid, authorUuid, comment);
-        return ResponseEntity.created(location(created.uuid()))
-                .headers(jsonHeaders())
-                .body(created);
-    }
-
     @PatchMapping("/{uuid}/review")
     public ResponseEntity<EvidenceDto> reviewEvidence(
             @PathVariable UUID uuid,

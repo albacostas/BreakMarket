@@ -45,9 +45,12 @@ public class EvidenceService {
         Specification<Evidence> stateFilter = EvidenceSpecification.evidenceStateEquals(state);
         Specification<Evidence> betIDFilter = EvidenceSpecification.evidenceBetUuidEquals(betID);
 
-        // TODO - Añadir el filtro de la fecha
+        Specification<Evidence> submittedDateFilter =
+                EvidenceSpecification.evidenceSubmittedDateAfterOrEqual(submittedDate);
 
-        Specification<Evidence> specification = Specification.where(stateFilter).and(betIDFilter);
+        Specification<Evidence> specification = Specification.where(stateFilter)
+                .and(betIDFilter)
+                .and(submittedDateFilter);
 
         List<Evidence> results =  evidenceRepository.findAll(specification);
 
