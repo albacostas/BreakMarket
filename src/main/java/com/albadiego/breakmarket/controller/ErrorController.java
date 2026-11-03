@@ -83,4 +83,16 @@ public class ErrorController {
     public ResponseEntity<String> handleGeneralConstraintViolationException(GeneralConstraintViolationException exception) {
         return new ResponseEntity<>("Conflicto de integridad en la base de datos: " + exception.getMessage(), HttpStatus.CONFLICT);
     }
+
+    // Capturar las excepciones cuando se recibe un JSON Patch para un path no válido
+    @ExceptionHandler(UnsupportedPatchPathException.class)
+    public ResponseEntity<String> handleUnsupportedPatchPathException(UnsupportedPatchPathException exception) {
+        return new ResponseEntity<>("No está permitido modificar los siguientes atributos: " + exception.getPaths().toString(), HttpStatus.UNPROCESSABLE_CONTENT);
+    }
+
+    // Capturar las excepciones cuando se recibe un JSON Patch para un estado no válido
+    @ExceptionHandler(InvalidEnumStateException.class)
+    public ResponseEntity<String> handleInvalidEnumStateException(InvalidEnumStateException exception) {
+        return new ResponseEntity<>("Los valores de estado indicados no son válidos: \n" + exception.getErrors(), HttpStatus.UNPROCESSABLE_CONTENT);
+    }
 }

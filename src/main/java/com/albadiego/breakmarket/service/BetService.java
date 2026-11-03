@@ -1,11 +1,10 @@
 package com.albadiego.breakmarket.service;
 
 import com.albadiego.breakmarket.dto.BetDto;
+import com.albadiego.breakmarket.dto.CoupleDto;
 import com.albadiego.breakmarket.dto.CreateBetOptionDto;
 import com.albadiego.breakmarket.dto.CreateBetDto;
-import com.albadiego.breakmarket.exceptions.BetNotFoundException;
-import com.albadiego.breakmarket.exceptions.CoupleNotFoundException;
-import com.albadiego.breakmarket.exceptions.UserNotFoundException;
+import com.albadiego.breakmarket.exceptions.*;
 import com.albadiego.breakmarket.model.Bet;
 import com.albadiego.breakmarket.model.BetOption;
 import com.albadiego.breakmarket.model.Couple;
@@ -15,9 +14,13 @@ import com.albadiego.breakmarket.repository.BetRepository;
 import com.albadiego.breakmarket.repository.CoupleRepository;
 import com.albadiego.breakmarket.repository.PersonRepository;
 import com.albadiego.breakmarket.repository.UserRepository;
+import com.albadiego.breakmarket.utils.enums.BetState;
+import com.albadiego.breakmarket.utils.enums.CoupleState;
 import com.albadiego.breakmarket.utils.patch.JsonPatch;
 import com.albadiego.breakmarket.utils.patch.JsonPatchOperation;
+import com.albadiego.breakmarket.utils.patch.JsonPatchValidation;
 import com.albadiego.breakmarket.utils.specifications.BetSpecification;
+import lombok.AllArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,11 +28,9 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 
 import java.time.Instant;
-import java.util.Date;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
+@AllArgsConstructor
 @Service
 public class BetService {
 
@@ -38,21 +39,7 @@ public class BetService {
     private final CoupleRepository coupleRepository;
     private final PersonRepository personRepository;
     private final JsonMapper mapper;
-
-    public BetService(
-            BetRepository betRepository,
-            UserRepository userRepository,
-            CoupleRepository coupleRepository,
-            PersonRepository personRepository,
-            JsonMapper mapper
-    ) {
-        this.betRepository = betRepository;
-        this.userRepository = userRepository;
-        this.coupleRepository = coupleRepository;
-        this.personRepository = personRepository;
-        this.mapper = mapper;
-
-    }
+    private final PatchUtils patchUtils;
 
     @Transactional(readOnly = true)
     public List<BetDto> findAllOpenBets() {
@@ -103,12 +90,36 @@ public class BetService {
         return toDto(saved);
     }
 
-    public BetDto updateBet(UUID uuid, List<JsonPatchOperation> changes) throws BetNotFoundException {
+    public BetDto updateBet(UUID uuid, List<Map<String, Object>> changes) throws BetNotFoundException, UnsupportedPatchPathException, InvalidEnumStateException {
         // Buscar la apuesta dentro de la base de datos por UUID
         Bet bet = betRepository.findById(uuid).orElseThrow(() -> new BetNotFoundException(uuid));
 
-        // Aplicar los cambios de JSON Patch
-        JsonNode patched = JsonPatch.apply(changes, mapper.convertValue(bet, JsonNode.class));
+        // Comprobar que no hay ninguna operación que no sea válida
+        List<String> invalidPaths = JsonPatchValidation.validatePaths(List.of("/description", "/state"), changes);
+        List<List<String>> invalidStates = JsonPatchValidation.validateState(changes, BetState.class, "/state");
+
+        // Si hay algún invalid path, lanzar una excepción
+        if(!invalidPaths.isEmpty()){
+            throw new UnsupportedPatchPathException(invalidPaths);
+        }
+
+        // Si hay algún estado inválido, lanzar una excepción
+        if(!invalidStates.isEmpty()){
+            throw new InvalidEnumStateException(invalidStates);
+        }
+
+        // Convertir la apuesta a DTO, ya que solo los campos del DTO se pueden modificar
+        BetDto betDto = toDto(bet);
+
+        // Aplicar todos los cambios pasados por JSON Patch
+        JsonNode patched = patchUtils.applyPatch(mapper.convertValue(betDto, JsonNode.class), changes);
+
+        // Convertir el JSON Node de vuelta a DTO
+        BetDto updatedDto = mapper.convertValue(patched, BetDto.class);
+
+        // Aplicar los cambios del DTO al objeto de la BD. Solo se puede modificar la descripción y el estado
+        bet.setDescription(updatedDto.description());
+        bet.setState(updatedDto.state());
 
         // Actualizar la apuesta tras aplicar los cambios
         Bet updated = mapper.convertValue(patched, Bet.class);

@@ -2,10 +2,7 @@ package com.albadiego.breakmarket.controller;
 
 import com.albadiego.breakmarket.dto.CreateUserDto;
 import com.albadiego.breakmarket.dto.UserDto;
-import com.albadiego.breakmarket.exceptions.EmailAlreadyUsedException;
-import com.albadiego.breakmarket.exceptions.GeneralConstraintViolationException;
-import com.albadiego.breakmarket.exceptions.UserNotFoundException;
-import com.albadiego.breakmarket.exceptions.UsernameAlreadyUsedException;
+import com.albadiego.breakmarket.exceptions.*;
 import com.albadiego.breakmarket.service.UserService;
 import com.albadiego.breakmarket.utils.patch.JsonPatchOperation;
 import lombok.AllArgsConstructor;
@@ -13,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -40,7 +38,7 @@ public class UserController {
     }
 
     @PatchMapping("/{uuid}")
-    public ResponseEntity<UserDto> updateUser(@PathVariable UUID uuid, @RequestBody List<JsonPatchOperation> changes) throws UserNotFoundException {
+    public ResponseEntity<UserDto> updateUser(@PathVariable UUID uuid, @RequestBody List<Map<String, Object>> changes) throws UserNotFoundException, UnsupportedPatchPathException, InvalidEnumStateException {
         return ResponseEntity.ok(userService.updateUser(uuid, changes));
     };
 }

@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -37,7 +38,7 @@ public class CoupleController {
     }
 
     @PatchMapping("/{uuid}")
-    public ResponseEntity<CoupleDto> updateCoupleStatus(@PathVariable UUID uuid, @RequestBody List<JsonPatchOperation> changes) throws CoupleNotFoundException {
+    public ResponseEntity<CoupleDto> updateCoupleStatus(@PathVariable UUID uuid, @RequestBody List<Map<String, Object>> changes) throws CoupleNotFoundException, UnsupportedPatchPathException, InvalidEnumStateException {
         return ResponseEntity.ok(coupleService.updateCouple(uuid, changes));
     };
 }

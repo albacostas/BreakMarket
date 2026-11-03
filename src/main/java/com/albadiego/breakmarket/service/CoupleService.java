@@ -7,8 +7,10 @@ import com.albadiego.breakmarket.model.Couple;
 import com.albadiego.breakmarket.model.Person;
 import com.albadiego.breakmarket.repository.CoupleRepository;
 import com.albadiego.breakmarket.repository.PersonRepository;
+import com.albadiego.breakmarket.utils.enums.CoupleState;
 import com.albadiego.breakmarket.utils.patch.JsonPatch;
 import com.albadiego.breakmarket.utils.patch.JsonPatchOperation;
+import com.albadiego.breakmarket.utils.patch.JsonPatchValidation;
 import com.albadiego.breakmarket.utils.specifications.CoupleSpecification;
 import com.albadiego.breakmarket.utils.specifications.TicketSpecification;
 import lombok.AllArgsConstructor;
@@ -19,7 +21,9 @@ import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -28,6 +32,7 @@ public class CoupleService {
     private final CoupleRepository coupleRepository;
     private final PersonRepository personRepository;
     private final ObjectMapper mapper;
+    private final PatchUtils patchUtils;
 
     @Transactional(readOnly = true)
     public List<CoupleDto> findCouples(
@@ -93,16 +98,39 @@ public class CoupleService {
     }
 
     @Transactional
-    public CoupleDto updateCouple(UUID uuid, List<JsonPatchOperation> changes) throws CoupleNotFoundException {
+    public CoupleDto updateCouple(UUID uuid, List<Map<String, Object>> changes) throws CoupleNotFoundException, UnsupportedPatchPathException, InvalidEnumStateException {
         // Buscar la pareja en la base de datos
         Couple couple = coupleRepository.findById(uuid).orElseThrow( () -> new CoupleNotFoundException(uuid) );
 
-        // Aplicar todos los cambios pasados por JSON Patch
-        JsonNode patched = JsonPatch.apply(changes, mapper.convertValue(couple, JsonNode.class));
+        // Comprobar que no haya ninguna operación que no sea válida
+        List<String> invalidPaths = JsonPatchValidation.validatePaths(List.of("/status"), changes);
+        List<List<String>> invalidStates = JsonPatchValidation.validateState(changes, CoupleState.class, "/status");
 
-        // Actualizar el valor del usuario en la BD
-        Couple updated = mapper.convertValue(patched, Couple.class);
-        return toDto(coupleRepository.save(updated));
+        // Si hay algún invalid path, lanzar una excepción
+        if(!invalidPaths.isEmpty()){
+            throw new UnsupportedPatchPathException(invalidPaths);
+        }
+
+        // Si hay algún estado inválido, lanzar una excepción
+        if(!invalidStates.isEmpty()){
+            throw new InvalidEnumStateException(invalidStates);
+        }
+
+        // Convertir la pareja a su DTO, ya que solo los campos del DTO se pueden modificar
+        CoupleDto coupleDto = toDto(couple);
+
+        // Aplicar todos los cambios pasados por JSON Patch
+        JsonNode node = mapper.convertValue(coupleDto, JsonNode.class);
+        JsonNode patched = patchUtils.applyPatch(node, changes);
+
+        // Convertir el JSON Node de vuelta a DTO
+        CoupleDto updatedDto = mapper.convertValue(patched, CoupleDto.class);
+
+        // Aplicar los cambios del DTO a la pareja de la BD. Solo puede cambiar el status
+        couple.setStatus(updatedDto.status());
+
+        // Actualizar el valor de la pareja en la BD
+        return toDto(coupleRepository.save(couple));
     }
 
     private CoupleDto toDto(Couple couple) {

@@ -4,9 +4,7 @@ import com.albadiego.breakmarket.dto.BetDto;
 import com.albadiego.breakmarket.dto.BetTicketDto;
 import com.albadiego.breakmarket.dto.CreateBetDto;
 import com.albadiego.breakmarket.dto.EvidenceDto;
-import com.albadiego.breakmarket.exceptions.BetNotFoundException;
-import com.albadiego.breakmarket.exceptions.CoupleNotFoundException;
-import com.albadiego.breakmarket.exceptions.UserNotFoundException;
+import com.albadiego.breakmarket.exceptions.*;
 import com.albadiego.breakmarket.model.BetOption;
 import com.albadiego.breakmarket.model.BetTicket;
 import com.albadiego.breakmarket.service.BetOptionService;
@@ -25,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Date;
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -64,7 +63,7 @@ public class BetController {
     }
 
     @PatchMapping("/{uuid}")
-    public ResponseEntity<BetDto> updateBet(@PathVariable UUID uuid, @RequestBody List<JsonPatchOperation> changes) throws BetNotFoundException {
+    public ResponseEntity<BetDto> updateBet(@PathVariable UUID uuid, @RequestBody List<Map<String, Object>> changes) throws BetNotFoundException, UnsupportedPatchPathException, InvalidEnumStateException {
         return ResponseEntity.ok().headers(jsonHeaders()).body(betService.updateBet(uuid, changes));
     }
 

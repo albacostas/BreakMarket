@@ -2,15 +2,15 @@ package com.albadiego.breakmarket.service;
 
 import com.albadiego.breakmarket.dto.CreateUserDto;
 import com.albadiego.breakmarket.dto.UserDto;
-import com.albadiego.breakmarket.exceptions.EmailAlreadyUsedException;
-import com.albadiego.breakmarket.exceptions.GeneralConstraintViolationException;
-import com.albadiego.breakmarket.exceptions.UserNotFoundException;
-import com.albadiego.breakmarket.exceptions.UsernameAlreadyUsedException;
+import com.albadiego.breakmarket.exceptions.*;
 import com.albadiego.breakmarket.model.Person;
 import com.albadiego.breakmarket.model.User;
 import com.albadiego.breakmarket.repository.UserRepository;
+import com.albadiego.breakmarket.utils.enums.CoupleState;
+import com.albadiego.breakmarket.utils.enums.UserRole;
 import com.albadiego.breakmarket.utils.patch.JsonPatch;
 import com.albadiego.breakmarket.utils.patch.JsonPatchOperation;
+import com.albadiego.breakmarket.utils.patch.JsonPatchValidation;
 import com.albadiego.breakmarket.utils.specifications.PeopleSpecification;
 import com.albadiego.breakmarket.utils.specifications.UserSpecification;
 import org.hibernate.exception.ConstraintViolationException;
@@ -23,6 +23,7 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -30,6 +31,7 @@ import java.util.UUID;
 public class UserService {
     private final UserRepository userRepository;
     private final ObjectMapper mapper;
+    private final PatchUtils patchUtils;
 
     @Transactional(readOnly = true)
     public List<UserDto> findAllUsers(String fullName, String username) {
@@ -91,16 +93,41 @@ public class UserService {
     }
 
     @Transactional
-    public UserDto updateUser(UUID uuid, List<JsonPatchOperation> changes) throws UserNotFoundException {
+    public UserDto updateUser(UUID uuid, List<Map<String, Object>> changes) throws UserNotFoundException, UnsupportedPatchPathException, InvalidEnumStateException {
         // Buscar el usuario en la base de datos
         User user = userRepository.findById(uuid).orElseThrow( () -> new UserNotFoundException(uuid) );
 
+        // Validar que las operaciones sean válidas
+        List<String> invalidPaths = JsonPatchValidation.validatePaths(List.of("/fullName", "/password", "/role"), changes);
+        List<List<String>> invalidStates = JsonPatchValidation.validateState(changes, UserRole.class, "/role");
+
+        // Si hay algún invalid path, lanzar una excepción
+        if(!invalidPaths.isEmpty()){
+            throw new UnsupportedPatchPathException(invalidPaths);
+        }
+
+        // Si hay algún estado inválido, lanzar una excepción
+        if(!invalidStates.isEmpty()){
+            throw new InvalidEnumStateException(invalidStates);
+        }
+
+        // Convertir el usuario a su DTO
+        UserDto userDto = toDto(user);
+
         // Aplicar todos los cambios pasados por JSON Patch
-        JsonNode patched = JsonPatch.apply(changes, mapper.convertValue(user, JsonNode.class));
+        JsonNode patched = patchUtils.applyPatch(mapper.convertValue(userDto, JsonNode.class), changes);
+        JsonNode node = mapper.convertValue(userDto, JsonNode.class);
+
+        // Convertir el JSON Node de vuelta al DTO
+        User updated = mapper.convertValue(patched, User.class);
+
+        // Aplicar los cambios del DTO al usuario de la BD. Solo puede cambiar el nombre, contraseña o rol
+        user.setFullName(userDto.fullName());
+        user.setPassword(userDto.password());
+        user.setRole(userDto.role());
 
         // Actualizar el valor del usuario en la BD
-        User updated = mapper.convertValue(patched, User.class);
-        return toDto(userRepository.save(updated));
+        return toDto(userRepository.save(user));
     }
 
     private UserDto toDto(User user) {
