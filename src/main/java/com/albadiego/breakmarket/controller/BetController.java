@@ -1,9 +1,6 @@
 package com.albadiego.breakmarket.controller;
 
-import com.albadiego.breakmarket.dto.BetDto;
-import com.albadiego.breakmarket.dto.BetTicketDto;
-import com.albadiego.breakmarket.dto.CreateBetDto;
-import com.albadiego.breakmarket.dto.EvidenceDto;
+import com.albadiego.breakmarket.dto.*;
 import com.albadiego.breakmarket.exceptions.*;
 import com.albadiego.breakmarket.model.BetOption;
 import com.albadiego.breakmarket.model.BetTicket;
@@ -55,7 +52,7 @@ public class BetController {
     }
 
     @PostMapping
-    public ResponseEntity<BetDto> createBet(@Valid @RequestBody CreateBetDto createBetDto) throws UserNotFoundException, CoupleNotFoundException {
+    public ResponseEntity<BetDto> createBet(@Valid @RequestBody CreateBetDto createBetDto) throws UserNotFoundException, CoupleNotFoundException, BetTypeNotSupportedException, InvalidBetOptionDateException, BetOptionsNotSpecifiedException {
         BetDto created = betService.createBet(createBetDto);
         return ResponseEntity.created(location(created.uuid()))
                 .headers(jsonHeaders())
@@ -68,8 +65,8 @@ public class BetController {
     }
 
     @GetMapping("/{betUuid}/options")
-    public ResponseEntity<List<BetOption>> getBetOptions(@PathVariable UUID betUuid) {
-        return ResponseEntity.ok().headers(jsonHeaders()).body(betOptionService.findByBet(betUuid));
+    public ResponseEntity<List<BetOptionDto>> getBetOptions(@PathVariable UUID betUuid) throws BetNotFoundException {
+        return ResponseEntity.ok().headers(jsonHeaders()).body(betService.findOptionsByBet(betUuid));
     }
 
     @PostMapping("/{betUuid}/options")

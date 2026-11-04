@@ -95,4 +95,22 @@ public class ErrorController {
     public ResponseEntity<String> handleInvalidEnumStateException(InvalidEnumStateException exception) {
         return new ResponseEntity<>("Los valores de estado indicados no son válidos: \n" + exception.getErrors(), HttpStatus.UNPROCESSABLE_CONTENT);
     }
+
+    // Capturar las excepciones cuando se recibe un tipo de apuesta inválido
+    @ExceptionHandler(BetTypeNotSupportedException.class)
+    public ResponseEntity<String> handleBetTypeNotSupportedException(BetTypeNotSupportedException exception) {
+        return new ResponseEntity<>("El tipo de apuesta especificado ("+ exception.getBetType() + ") no es válido. Debe ser YES_NO, DATE o PERSON.", HttpStatus.UNPROCESSABLE_CONTENT);
+    }
+
+    // Capturar las excepciones cuando se recibe un JSON Patch para un estado no válido
+    @ExceptionHandler(InvalidBetOptionDateException.class)
+    public ResponseEntity<String> handleInvalidBetOptionDateException(InvalidBetOptionDateException exception) {
+        return new ResponseEntity<>("Alguna de las fechas especificadas no son válidas: " + exception.getInvalidDates() + "\n", HttpStatus.UNPROCESSABLE_CONTENT);
+    }
+
+    // Capturar las excepciones cuando no se reciben las opciones de apuestas requeridas
+    @ExceptionHandler(BetOptionsNotSpecifiedException.class)
+    public ResponseEntity<String> handleBetOptionsNotSpecifiedException(BetOptionsNotSpecifiedException exception) {
+        return new ResponseEntity<>("No se ha especificado ninguna opción para la apuesta", HttpStatus.UNPROCESSABLE_CONTENT);
+    }
 }

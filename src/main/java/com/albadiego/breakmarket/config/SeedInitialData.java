@@ -107,15 +107,15 @@ public class SeedInitialData implements CommandLineRunner {
             BetOption yes = new BetOption();
             yes.setBet(bet);
             yes.setDescription("Sí");
-            yes.setCurrent_rate(BigDecimal.valueOf(1.80));
-            yes.setTotal_pool(BigDecimal.ZERO);
+            yes.setCurrentRate(BigDecimal.valueOf(1.80));
+            yes.setTotalPool(BigDecimal.ZERO);
             betOptionRepository.save(yes);
 
             BetOption no = new BetOption();
             no.setBet(bet);
             no.setDescription("No");
-            no.setCurrent_rate(BigDecimal.valueOf(2.20));
-            no.setTotal_pool(BigDecimal.ZERO);
+            no.setCurrentRate(BigDecimal.valueOf(2.20));
+            no.setTotalPool(BigDecimal.ZERO);
             betOptionRepository.save(no);
         }
 
@@ -139,7 +139,7 @@ public class SeedInitialData implements CommandLineRunner {
             ticket.setUser(tester);
             ticket.setBet(bet);
             ticket.setOption(option);
-            ticket.setRate(option.getCurrent_rate().floatValue());
+            ticket.setRate(option.getCurrentRate().floatValue());
             ticket.setQuantity(10f);
             ticket.setState("OPEN");
             ticket.setCreatedDate(Instant.now());

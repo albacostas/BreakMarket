@@ -17,15 +17,5 @@ public record CreateBetDto(
         @NotBlank String type,
         @NotBlank String description,
         Instant endDate,
-        List<@Valid CreateBetOptionDto> options
-) {
-    public CreateBetDto(
-            UUID creatorUuid,
-            UUID coupleUuid,
-            String type,
-            String description,
-            Instant endDate
-    ) {
-        this(creatorUuid, coupleUuid, type, description, endDate, null);
-    }
-}
+        List<String> options
+) {}

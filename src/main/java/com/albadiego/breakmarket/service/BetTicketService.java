@@ -95,13 +95,13 @@ public class BetTicketService {
             throw new IllegalArgumentException("Quantity must be positive");
         }
 
-        BigDecimal amount = option.getCurrent_rate().multiply(BigDecimal.valueOf(quantity));
+        BigDecimal amount = option.getCurrentRate().multiply(BigDecimal.valueOf(quantity));
         if (user.getCoins().compareTo(amount) < 0) {
             throw new IllegalStateException("User does not have enough coins");
         }
 
         user.setCoins(user.getCoins().subtract(amount));
-        option.setTotal_pool(option.getTotal_pool().add(amount));
+        option.setTotalPool(option.getTotalPool().add(amount));
         userRepository.save(user);
         optionRepository.save(option);
 
@@ -109,7 +109,7 @@ public class BetTicketService {
         ticket.setUser(user);
         ticket.setBet(bet);
         ticket.setOption(option);
-        ticket.setRate(option.getCurrent_rate().floatValue());
+        ticket.setRate(option.getCurrentRate().floatValue());
         ticket.setQuantity(quantity);
         ticket.setState("OPEN");
         ticket.setCreatedDate(Instant.now());

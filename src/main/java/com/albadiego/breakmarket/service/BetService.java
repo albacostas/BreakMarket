@@ -1,9 +1,6 @@
 package com.albadiego.breakmarket.service;
 
-import com.albadiego.breakmarket.dto.BetDto;
-import com.albadiego.breakmarket.dto.CoupleDto;
-import com.albadiego.breakmarket.dto.CreateBetOptionDto;
-import com.albadiego.breakmarket.dto.CreateBetDto;
+import com.albadiego.breakmarket.dto.*;
 import com.albadiego.breakmarket.exceptions.*;
 import com.albadiego.breakmarket.model.Bet;
 import com.albadiego.breakmarket.model.BetOption;
@@ -15,6 +12,7 @@ import com.albadiego.breakmarket.repository.CoupleRepository;
 import com.albadiego.breakmarket.repository.PersonRepository;
 import com.albadiego.breakmarket.repository.UserRepository;
 import com.albadiego.breakmarket.utils.enums.BetState;
+import com.albadiego.breakmarket.utils.enums.BetType;
 import com.albadiego.breakmarket.utils.enums.CoupleState;
 import com.albadiego.breakmarket.utils.patch.JsonPatch;
 import com.albadiego.breakmarket.utils.patch.JsonPatchOperation;
@@ -27,7 +25,11 @@ import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 
+import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 
 @AllArgsConstructor
@@ -56,12 +58,21 @@ public class BetService {
     }
 
     @Transactional
-    public BetDto createBet(CreateBetDto dto) throws UserNotFoundException, CoupleNotFoundException {
+    public BetDto createBet(CreateBetDto dto) throws UserNotFoundException, CoupleNotFoundException, BetTypeNotSupportedException, InvalidBetOptionDateException, BetOptionsNotSpecifiedException {
         User creator = userRepository.findById(dto.creatorUuid())
                 .orElseThrow(() -> new UserNotFoundException(dto.creatorUuid()));
 
         Couple couple = coupleRepository.findById(dto.coupleUuid())
                 .orElseThrow(() -> new CoupleNotFoundException(dto.coupleUuid()));
+
+        // Comprobar que el tipo de apuesta especificado es válido
+        BetType betType = null;
+        try {
+            betType = Enum.valueOf(BetType.class, dto.type());
+        } catch (IllegalArgumentException e) {
+            // Si no es válido, lanzar una excepción
+            throw new BetTypeNotSupportedException(dto.type());
+        }
 
         Bet bet = new Bet();
         bet.setCreator(creator);
@@ -71,23 +82,105 @@ public class BetService {
         bet.setState("OPEN");
         bet.setStartDate(Instant.now());
         bet.setEndDate(dto.endDate());
-        bet.setBetOptions(new ArrayList<>());
 
-        Bet saved = betRepository.save(bet);
-        if (dto.options() != null) {
-            for (CreateBetOptionDto optionDto : dto.options()) {
-                BetOption option = new BetOption();
-                option.setBet(saved);
-                option.setDescription(optionDto.description());
-                option.setCurrent_rate(optionDto.currentRate());
-                option.setTotal_pool(java.math.BigDecimal.ZERO);
-                saved.getBetOptions().add(option);
+        // Crear las opciones dependiendo del tipo de apuesta
+        if(betType.equals(BetType.DATE)) {
+            // Comprobar si las opciones son válidas o no
+            if(dto.options() == null) {
+                throw new BetOptionsNotSpecifiedException();
             }
+
+            List<LocalDate> validDates = new ArrayList<>();
+            List<String> invalidDates = new ArrayList<>();
+
+            for(String date : dto.options()) {
+                try {
+                    validDates.add(LocalDate.parse(date, DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+                } catch (DateTimeParseException e) {
+                    invalidDates.add(date);
+                }
+            }
+
+            // Comprobar si alguna fecha es inválida
+            if(!invalidDates.isEmpty()) {
+                throw new InvalidBetOptionDateException(invalidDates);
+            }
+
+            // Procesar como opciones todas las opciones válidas
+            int numberOfOptions = validDates.size();
+            List<BetOption> betOptionList = new ArrayList<>();
+            for(LocalDate date : validDates) {
+                // Crear la opción para esta persona
+                BetOption betOption = new BetOption();
+                betOption.setBet(bet);
+                betOption.setDescription(date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+                betOption.setCurrentRate(BigDecimal.valueOf(1.0/numberOfOptions));
+                betOption.setTotalPool(BigDecimal.valueOf(0));
+
+                // Añadir la opción a la lista
+                betOptionList.add(betOption);
+            }
+
+            bet.setBetOptions(betOptionList);
         }
-        if (saved.getBetOptions() != null && !saved.getBetOptions().isEmpty()) {
-            betRepository.save(saved);
+        else if(betType.equals(BetType.PERSON)) {
+            // Comprobar si las opciones son válidas o no
+            if(dto.options() == null) {
+                throw new BetOptionsNotSpecifiedException();
+            }
+
+            int numberOfOptions = dto.options().size();
+            List<BetOption> betOptionList = new ArrayList<>();
+
+            for(String person : dto.options()) {
+                // Crear la opción para esta persona
+                BetOption betOption = new BetOption();
+                betOption.setBet(bet);
+                betOption.setDescription(person);
+                betOption.setCurrentRate(BigDecimal.valueOf(1.0/numberOfOptions));
+                betOption.setTotalPool(BigDecimal.valueOf(0));
+
+                // Añadir la opción a la lista
+                betOptionList.add(betOption);
+            }
+
+            bet.setBetOptions(betOptionList);
         }
+        else if(betType.equals(BetType.YES_NO)) {
+            // Crear la apuesta para SÍ
+            BetOption betOptionYes = new BetOption();
+            betOptionYes.setBet(bet);
+            betOptionYes.setDescription("Sí");
+            betOptionYes.setCurrentRate(BigDecimal.valueOf(0.5));
+            betOptionYes.setTotalPool(BigDecimal.valueOf(0));
+
+            // Crear la opción para NO
+            BetOption betOptionNo = new BetOption();
+            betOptionNo.setBet(bet);
+            betOptionNo.setDescription("No");
+            betOptionNo.setCurrentRate(BigDecimal.valueOf(0.5));
+            betOptionNo.setTotalPool(BigDecimal.valueOf(0));
+
+            bet.setBetOptions(List.of(betOptionYes, betOptionNo));
+        }
+        else {
+            throw new BetTypeNotSupportedException(dto.type());
+        }
+
+        // Guardar la apuesta creada
+        Bet saved = betRepository.save(bet);
         return toDto(saved);
+    }
+
+    public List<BetOptionDto> findOptionsByBet(UUID betUuid) throws BetNotFoundException {
+        // Buscar la apuesta dentro de la base de datos por UUID
+        Bet bet = betRepository.findById(betUuid).orElseThrow(() -> new BetNotFoundException(betUuid));
+
+        // Parsear las opciones de la apuesta
+        List<BetOptionDto> betOptions = bet.getBetOptions().stream().map(this::toDto).toList();
+
+        // Devolver la lista de opciones
+        return betOptions;
     }
 
     public BetDto updateBet(UUID uuid, List<Map<String, Object>> changes) throws BetNotFoundException, UnsupportedPatchPathException, InvalidEnumStateException {
@@ -170,6 +263,15 @@ public class BetService {
                 bet.getState(),
                 bet.getStartDate(),
                 bet.getEndDate()
+        );
+    }
+
+    private BetOptionDto toDto(BetOption betOption) {
+        return new BetOptionDto(
+                betOption.getUuid(),
+                betOption.getDescription(),
+                betOption.getCurrentRate(),
+                betOption.getTotalPool()
         );
     }
 }

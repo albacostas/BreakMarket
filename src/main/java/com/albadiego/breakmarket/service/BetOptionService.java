@@ -47,8 +47,8 @@ public class BetOptionService {
         BetOption option = new BetOption();
         option.setBet(bet);
         option.setDescription(description);
-        option.setCurrent_rate(currentRate);
-        option.setTotal_pool(BigDecimal.ZERO);
+        option.setCurrentRate(currentRate);
+        option.setTotalPool(BigDecimal.ZERO);
         return optionRepository.save(option);
     }
 
@@ -58,7 +58,7 @@ public class BetOptionService {
             throw new IllegalArgumentException("Rate must be positive");
         }
         BetOption option = findById(uuid);
-        option.setCurrent_rate(currentRate);
+        option.setCurrentRate(currentRate);
         return optionRepository.save(option);
     }
 

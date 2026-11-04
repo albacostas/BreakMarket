@@ -28,8 +28,8 @@ public class BetOption {
     private String description;
 
     @Column(nullable = false, precision = 8, scale = 4)
-    private BigDecimal current_rate;
+    private BigDecimal currentRate;
 
     @Column(nullable = false, precision = 12, scale = 2)
-    private BigDecimal total_pool;
+    private BigDecimal totalPool;
 }
