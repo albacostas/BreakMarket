@@ -24,7 +24,7 @@ public class Couple {
     private String status;
     @Column(nullable = true)
     private Instant startDate;
-    @Column(nullable = º
+    @Column(nullable = true)
     private Instant endDate;
 
     @ManyToOne(fetch = FetchType.LAZY)
