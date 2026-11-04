@@ -1,5 +1,7 @@
 package com.albadiego.breakmarket.dto;
 
+import com.albadiego.breakmarket.utils.enums.BetState;
+
 import java.time.Instant;
 import java.util.UUID;
 
@@ -12,7 +14,7 @@ public record BetDto(
         UUID coupleUuid,
         String type,
         String description,
-        String state,
+        BetState state,
         Instant startDate,
         Instant endDate
 ) {}

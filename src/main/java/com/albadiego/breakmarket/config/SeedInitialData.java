@@ -14,6 +14,7 @@ import com.albadiego.breakmarket.repository.CoupleRepository;
 import com.albadiego.breakmarket.repository.EvidenceRepository;
 import com.albadiego.breakmarket.repository.PersonRepository;
 import com.albadiego.breakmarket.repository.UserRepository;
+import com.albadiego.breakmarket.utils.enums.BetState;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -88,7 +89,7 @@ public class SeedInitialData implements CommandLineRunner {
             bet.setCouple(couple);
             bet.setType("RELATIONSHIP");
             bet.setDescription("¿Seguirán Ana y Luis juntos al finalizar el año?");
-            bet.setState("OPEN");
+            bet.setState(BetState.ACTIVE);
             bet.setStartDate(Instant.now());
             bet.setEndDate(Instant.now().plus(30, ChronoUnit.DAYS));
             betRepository.save(bet);
@@ -108,14 +109,14 @@ public class SeedInitialData implements CommandLineRunner {
             yes.setBet(bet);
             yes.setDescription("Sí");
             yes.setCurrentRate(BigDecimal.valueOf(1.80));
-            yes.setTotalPool(BigDecimal.ZERO);
+            yes.setTotalPool(0);
             betOptionRepository.save(yes);
 
             BetOption no = new BetOption();
             no.setBet(bet);
             no.setDescription("No");
             no.setCurrentRate(BigDecimal.valueOf(2.20));
-            no.setTotalPool(BigDecimal.ZERO);
+            no.setTotalPool(0);
             betOptionRepository.save(no);
         }
 
@@ -140,7 +141,7 @@ public class SeedInitialData implements CommandLineRunner {
             ticket.setBet(bet);
             ticket.setOption(option);
             ticket.setRate(option.getCurrentRate().floatValue());
-            ticket.setQuantity(10f);
+            ticket.setQuantity(10);
             ticket.setState("OPEN");
             ticket.setCreatedDate(Instant.now());
             betTicketRepository.save(ticket);

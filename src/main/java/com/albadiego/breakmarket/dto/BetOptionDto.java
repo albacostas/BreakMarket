@@ -7,5 +7,5 @@ public record BetOptionDto (
         UUID uuid,
         String description,
         BigDecimal currentRate,
-        BigDecimal totalPool
+        Integer totalPool
 ) {}

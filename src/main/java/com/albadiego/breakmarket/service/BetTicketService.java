@@ -1,10 +1,8 @@
 package com.albadiego.breakmarket.service;
 
 import com.albadiego.breakmarket.dto.BetTicketDto;
-import com.albadiego.breakmarket.exceptions.BetNotFoundException;
-import com.albadiego.breakmarket.exceptions.BetOptionNotFoundException;
-import com.albadiego.breakmarket.exceptions.BetTicketNotFoundException;
-import com.albadiego.breakmarket.exceptions.UserNotFoundException;
+import com.albadiego.breakmarket.dto.CreateBetTicketDto;
+import com.albadiego.breakmarket.exceptions.*;
 import com.albadiego.breakmarket.model.Bet;
 import com.albadiego.breakmarket.model.BetOption;
 import com.albadiego.breakmarket.model.BetTicket;
@@ -13,6 +11,7 @@ import com.albadiego.breakmarket.repository.BetRepository;
 import com.albadiego.breakmarket.repository.BetOptionRepository;
 import com.albadiego.breakmarket.repository.BetTicketRepository;
 import com.albadiego.breakmarket.repository.UserRepository;
+import com.albadiego.breakmarket.utils.enums.BetState;
 import com.albadiego.breakmarket.utils.specifications.BetSpecification;
 import com.albadiego.breakmarket.utils.specifications.TicketSpecification;
 import org.springframework.data.jpa.domain.Specification;
@@ -79,41 +78,76 @@ public class BetTicketService {
     }
 
     @Transactional
-    public BetTicket create(UUID userUuid, UUID betUuid, UUID optionUuid, Float quantity) {
-        User user = requireUser(userUuid);
+    public BetTicketDto create(UUID betUuid, CreateBetTicketDto createBetTicketDto) throws BetOptionNotFoundException, BetClosedException, InvalidBetTicketQuantityException, NotEnoughCoinsException {
+        // Comprobar que la apuesta existe
         Bet bet = requireBet(betUuid);
-        BetOption option = optionRepository.findById(optionUuid)
-                .orElseThrow(() -> new BetOptionNotFoundException(optionUuid));
 
-        if (!bet.getUuid().equals(option.getBet().getUuid())) {
-            throw new IllegalArgumentException("The option does not belong to the bet");
+        // Comprobar que el usuario existe
+        User user = requireUser(createBetTicketDto.userUUID());
+
+        // Comprobar que la opción existe dentro de la apuesta
+        BetOption selectedOption = null;
+        for (BetOption option: bet.getBetOptions()) {
+            if(option.getUuid().equals(createBetTicketDto.optionUUID())) {
+                selectedOption = option;
+                break;
+            }
         }
-        if (!"OPEN".equalsIgnoreCase(bet.getState())) {
-            throw new IllegalStateException("Tickets can only be created for open bets");
+
+        if(selectedOption == null) {
+            throw new BetOptionNotFoundException(createBetTicketDto.optionUUID());
         }
+
+        // Comprobar que el estado de la Bet es OPEN
+        if(!bet.getState().equals(BetState.ACTIVE)) {
+            throw new BetClosedException(bet.getUuid());
+        }
+
+        // Comprobar que la cantidad especificada es
+        Integer quantity = createBetTicketDto.quantity();
         if (quantity == null || quantity <= 0) {
-            throw new IllegalArgumentException("Quantity must be positive");
+            throw new InvalidBetTicketQuantityException(quantity);
         }
 
-        BigDecimal amount = option.getCurrentRate().multiply(BigDecimal.valueOf(quantity));
-        if (user.getCoins().compareTo(amount) < 0) {
-            throw new IllegalStateException("User does not have enough coins");
+        // Comprobar que el usuario tiene fondos suficientes para realizar la apuesta
+        BigDecimal totalAmount = selectedOption.getCurrentRate().multiply(BigDecimal.valueOf(quantity));
+        if (user.getCoins().compareTo(totalAmount) < 0) {
+            throw new NotEnoughCoinsException(user.getCoins(), totalAmount);
         }
 
-        user.setCoins(user.getCoins().subtract(amount));
-        option.setTotalPool(option.getTotalPool().add(amount));
+        // Actualizar el número de monedas del usuario
+        user.setCoins(user.getCoins().subtract(totalAmount));
         userRepository.save(user);
-        optionRepository.save(option);
 
+        // Crear el ticket para el usuario
         BetTicket ticket = new BetTicket();
         ticket.setUser(user);
         ticket.setBet(bet);
-        ticket.setOption(option);
-        ticket.setRate(option.getCurrentRate().floatValue());
+        ticket.setOption(selectedOption);
+        ticket.setRate(selectedOption.getCurrentRate().floatValue());
         ticket.setQuantity(quantity);
         ticket.setState("OPEN");
         ticket.setCreatedDate(Instant.now());
-        return ticketRepository.save(ticket);
+
+        // Guardar el ticket en la base de datos
+        BetTicket createdTicket = ticketRepository.save(ticket);
+
+        // Actualizar el número de opciones asociadas a una opción
+        selectedOption.setTotalPool(selectedOption.getTotalPool() + quantity);
+
+        // Obtener el número total de options
+        Integer totalOptions = bet.getBetOptions().stream().map(BetOption::getTotalPool).reduce(0, Integer::sum);
+
+        // Actualizar los rates de todas las opciones
+        for (BetOption option: bet.getBetOptions()) {
+            option.setCurrentRate(BigDecimal.valueOf(option.getTotalPool().doubleValue()/totalOptions.doubleValue()));
+        }
+
+        // Guardar la apuesta modificada
+        betRepository.save(bet);
+
+        // Devolver el ticket creado
+        return toDto(createdTicket);
     }
 
     @Transactional

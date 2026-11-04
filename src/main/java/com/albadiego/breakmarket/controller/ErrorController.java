@@ -113,4 +113,22 @@ public class ErrorController {
     public ResponseEntity<String> handleBetOptionsNotSpecifiedException(BetOptionsNotSpecifiedException exception) {
         return new ResponseEntity<>("No se ha especificado ninguna opción para la apuesta", HttpStatus.UNPROCESSABLE_CONTENT);
     }
+
+    // Capturar las excepciones cuando se intenta crear un ticket para una apuesta cerrada
+    @ExceptionHandler(BetClosedException.class)
+    public ResponseEntity<String> handleBetClosedException(BetClosedException exception) {
+        return new ResponseEntity<>("No se pueden realizar apuestas para una apuesta ya finalizada: " + exception.getBetUUID() + "\n", HttpStatus.UNPROCESSABLE_CONTENT);
+    }
+
+    // Capturar las excepciones cuando se intenta realizar una apuesta con una cantidad inválida
+    @ExceptionHandler(InvalidBetTicketQuantityException.class)
+    public ResponseEntity<String> handleInvalidBetTicketQuantityException(InvalidBetTicketQuantityException exception) {
+        return new ResponseEntity<>("No se puede realizar una apuesta con la cantidad especificada: " + exception.getQuantity() + "\n", HttpStatus.UNPROCESSABLE_CONTENT);
+    }
+
+    // Capturar las excepciones cuando se intenta realizar una apuesta sin los fondos suficientes
+    @ExceptionHandler(NotEnoughCoinsException.class)
+    public ResponseEntity<String> handleNotEnoughCoinsException(NotEnoughCoinsException exception) {
+        return new ResponseEntity<>("No se puede procesar la apuesta, ya que se requieren " + exception.getPurchaseCoins() + " monedas y solo tiene " + exception.getAvailableCoins() + " disponibles\n", HttpStatus.UNPROCESSABLE_CONTENT);
+    }
 }

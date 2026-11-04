@@ -30,6 +30,6 @@ public class BetOption {
     @Column(nullable = false, precision = 8, scale = 4)
     private BigDecimal currentRate;
 
-    @Column(nullable = false, precision = 12, scale = 2)
-    private BigDecimal totalPool;
+    @Column(nullable = false)
+    private Integer totalPool;
 }

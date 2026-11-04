@@ -5,7 +5,7 @@ import lombok.Getter;
 import java.util.UUID;
 
 @Getter
-public class BetOptionNotFoundException extends RuntimeException {
+public class BetOptionNotFoundException extends Exception {
     private final UUID uuid;
 
     public BetOptionNotFoundException(UUID uuid) {

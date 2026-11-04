@@ -98,19 +98,19 @@ public class BetController {
     }
 
     @GetMapping("/{betUuid}/options/{optionUuid}")
-    public ResponseEntity<BetOption> getBetOption(@PathVariable UUID optionUuid) {
+    public ResponseEntity<BetOption> getBetOption(@PathVariable UUID optionUuid) throws BetOptionNotFoundException {
         return ResponseEntity.ok().headers(jsonHeaders()).body(betOptionService.findById(optionUuid));
     }
 
     @PatchMapping("/{betUuid}/options/{optionUuid}")
     public ResponseEntity<BetOption> updateBetOptionRate(
             @PathVariable UUID optionUuid,
-            @RequestParam java.math.BigDecimal currentRate) {
+            @RequestParam java.math.BigDecimal currentRate) throws BetOptionNotFoundException {
         return ResponseEntity.ok().headers(jsonHeaders()).body(betOptionService.updateRate(optionUuid, currentRate));
     }
 
     @DeleteMapping("/{betUuid}/options/{optionUuid}")
-    public ResponseEntity<Void> deleteBetOption(@PathVariable UUID optionUuid) {
+    public ResponseEntity<Void> deleteBetOption(@PathVariable UUID optionUuid) throws BetOptionNotFoundException {
         betOptionService.delete(optionUuid);
         return ResponseEntity.noContent().build();
     }
@@ -127,13 +127,11 @@ public class BetController {
     }
 
     @PostMapping("/{betUuid}/tickets")
-    public ResponseEntity<BetTicket> createBetTicket(
+    public ResponseEntity<BetTicketDto> createBetTicket(
             @PathVariable UUID betUuid,
-            @RequestParam UUID userUuid,
-            @RequestParam UUID optionUuid,
-            @RequestParam Float quantity) {
-        BetTicket created = betTicketService.create(userUuid, betUuid, optionUuid, quantity);
-        return ResponseEntity.created(location(created.getUuid()))
+            @RequestBody CreateBetTicketDto createBetTicketDto) throws BetOptionNotFoundException, BetClosedException, InvalidBetTicketQuantityException, NotEnoughCoinsException {
+        BetTicketDto created = betTicketService.create(betUuid, createBetTicketDto);
+        return ResponseEntity.ok()
                 .headers(jsonHeaders())
                 .body(created);
     }

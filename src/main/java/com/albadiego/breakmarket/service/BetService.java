@@ -79,7 +79,7 @@ public class BetService {
         bet.setCouple(couple);
         bet.setType(dto.type());
         bet.setDescription(dto.description());
-        bet.setState("OPEN");
+        bet.setState(BetState.ACTIVE);
         bet.setStartDate(Instant.now());
         bet.setEndDate(dto.endDate());
 
@@ -115,7 +115,7 @@ public class BetService {
                 betOption.setBet(bet);
                 betOption.setDescription(date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
                 betOption.setCurrentRate(BigDecimal.valueOf(1.0/numberOfOptions));
-                betOption.setTotalPool(BigDecimal.valueOf(0));
+                betOption.setTotalPool(1);
 
                 // Añadir la opción a la lista
                 betOptionList.add(betOption);
@@ -138,7 +138,7 @@ public class BetService {
                 betOption.setBet(bet);
                 betOption.setDescription(person);
                 betOption.setCurrentRate(BigDecimal.valueOf(1.0/numberOfOptions));
-                betOption.setTotalPool(BigDecimal.valueOf(0));
+                betOption.setTotalPool(1);
 
                 // Añadir la opción a la lista
                 betOptionList.add(betOption);
@@ -152,14 +152,14 @@ public class BetService {
             betOptionYes.setBet(bet);
             betOptionYes.setDescription("Sí");
             betOptionYes.setCurrentRate(BigDecimal.valueOf(0.5));
-            betOptionYes.setTotalPool(BigDecimal.valueOf(0));
+            betOptionYes.setTotalPool(1);
 
             // Crear la opción para NO
             BetOption betOptionNo = new BetOption();
             betOptionNo.setBet(bet);
             betOptionNo.setDescription("No");
             betOptionNo.setCurrentRate(BigDecimal.valueOf(0.5));
-            betOptionNo.setTotalPool(BigDecimal.valueOf(0));
+            betOptionNo.setTotalPool(1);
 
             bet.setBetOptions(List.of(betOptionYes, betOptionNo));
         }

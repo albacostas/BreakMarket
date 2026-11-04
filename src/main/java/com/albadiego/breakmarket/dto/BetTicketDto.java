@@ -9,7 +9,7 @@ public record BetTicketDto (
         UUID betUuid,
         UUID optionUuid,
         Float rate,
-        Float quantity,
+        Integer quantity,
         String state,
         Instant createdDate
 

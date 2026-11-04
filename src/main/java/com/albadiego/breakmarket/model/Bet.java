@@ -1,5 +1,6 @@
 package com.albadiego.breakmarket.model;
 
+import com.albadiego.breakmarket.utils.enums.BetState;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -36,7 +37,8 @@ public class Bet {
     private String description;
 
     @Column(nullable = false)
-    private String state;
+    @Enumerated(EnumType.STRING)
+    private BetState state;
 
     @Column(nullable = false)
     private Instant startDate;

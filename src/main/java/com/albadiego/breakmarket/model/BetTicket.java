@@ -45,7 +45,7 @@ public class BetTicket {
     private Float rate;
 
     @Column(nullable = false)
-    private Float quantity;
+    private Integer quantity;
 
     @Column(nullable = false)
     private String state;

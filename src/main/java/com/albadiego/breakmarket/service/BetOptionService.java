@@ -31,7 +31,7 @@ public class BetOptionService {
     }
 
     @Transactional(readOnly = true)
-    public BetOption findById(UUID uuid) {
+    public BetOption findById(UUID uuid) throws BetOptionNotFoundException {
         return optionRepository.findById(uuid)
                 .orElseThrow(() -> new BetOptionNotFoundException(uuid));
     }
@@ -48,12 +48,12 @@ public class BetOptionService {
         option.setBet(bet);
         option.setDescription(description);
         option.setCurrentRate(currentRate);
-        option.setTotalPool(BigDecimal.ZERO);
+        option.setTotalPool(0);
         return optionRepository.save(option);
     }
 
     @Transactional
-    public BetOption updateRate(UUID uuid, BigDecimal currentRate) {
+    public BetOption updateRate(UUID uuid, BigDecimal currentRate) throws BetOptionNotFoundException {
         if (currentRate == null || currentRate.signum() <= 0) {
             throw new IllegalArgumentException("Rate must be positive");
         }
@@ -63,7 +63,7 @@ public class BetOptionService {
     }
 
     @Transactional
-    public void delete(UUID uuid) {
+    public void delete(UUID uuid) throws BetOptionNotFoundException {
         optionRepository.delete(findById(uuid));
     }
 
