@@ -23,7 +23,7 @@ public class UserSpecification {
                 return builder.conjunction();
             }
             else{
-                return builder.like(builder.lower(root.get("fullName")), "%" + username.toLowerCase() + "%");
+                return builder.like(builder.lower(root.get("username")), "%" + username.toLowerCase() + "%");
             }
         };
     }

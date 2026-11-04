@@ -90,7 +90,8 @@ public class BetController {
     }
 
     @PostMapping("/{betUuid}/evidence")
-    public ResponseEntity<EvidenceDto> submitBetEvidence(
+    public ResponseEntity<EvidenceDto>
+    submitBetEvidence(
             @PathVariable UUID betUuid,
             @RequestParam UUID authorUuid,
             @RequestParam String comment) {
