@@ -169,12 +169,12 @@ public class BetController {
     }
 
     @PostMapping("/{betUuid}/options")
-    public ResponseEntity<BetOption> createBetOption(
+    public ResponseEntity<BetOptionDto> createBetOption(
             @PathVariable UUID betUuid,
             @RequestParam String description,
             @RequestParam java.math.BigDecimal currentRate) {
-        BetOption created = betOptionService.create(betUuid, description, currentRate);
-        return ResponseEntity.created(location(created.getUuid()))
+        BetOptionDto created = betOptionService.create(betUuid, description, currentRate);
+        return ResponseEntity.created(location(created.uuid()))
                 .headers(jsonHeaders())
                 .body(created);
     }

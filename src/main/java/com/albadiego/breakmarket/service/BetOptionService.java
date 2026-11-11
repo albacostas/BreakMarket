@@ -38,7 +38,7 @@ public class BetOptionService {
     }
 
     @Transactional
-    public BetOption create(UUID betUuid, String description, BigDecimal currentRate) {
+    public BetOptionDto create(UUID betUuid, String description, BigDecimal currentRate) {
         Bet bet = requireBet(betUuid);
         if (description == null || description.isBlank() || currentRate == null
                 || currentRate.signum() <= 0) {
@@ -50,7 +50,7 @@ public class BetOptionService {
         option.setDescription(description);
         option.setCurrentRate(currentRate);
         option.setTotalPool(0);
-        return optionRepository.save(option);
+        return toDto(optionRepository.save(option));
     }
 
     @Transactional
