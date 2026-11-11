@@ -1,5 +1,6 @@
 package com.albadiego.breakmarket.model;
 
+import com.albadiego.breakmarket.utils.enums.TicketState;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -48,7 +49,7 @@ public class BetTicket {
     private Integer quantity;
 
     @Column(nullable = false)
-    private String state;
+    private TicketState state;
 
     @Column(nullable = false)
     private Instant createdDate;

@@ -4,7 +4,6 @@ import com.albadiego.breakmarket.dto.CoupleDto;
 import com.albadiego.breakmarket.dto.CreateCoupleDto;
 import com.albadiego.breakmarket.exceptions.*;
 import com.albadiego.breakmarket.service.CoupleService;
-import com.albadiego.breakmarket.utils.patch.JsonPatchOperation;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

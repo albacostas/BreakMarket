@@ -1,5 +1,6 @@
 package com.albadiego.breakmarket.model;
 
+import com.albadiego.breakmarket.utils.enums.CoupleState;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -21,7 +22,7 @@ public class Couple {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID uuid;
     @Column(nullable = false)
-    private String status;
+    private CoupleState status;
     @Column(nullable = true)
     private Instant startDate;
     @Column(nullable = true)

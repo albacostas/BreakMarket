@@ -1,5 +1,6 @@
 package com.albadiego.breakmarket.model;
 
+import com.albadiego.breakmarket.utils.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -35,7 +36,7 @@ public class User {
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal coins;
     @Column(nullable = false)
-    private String role;
+    private UserRole role;
 
     @OneToMany(
             mappedBy = "user",

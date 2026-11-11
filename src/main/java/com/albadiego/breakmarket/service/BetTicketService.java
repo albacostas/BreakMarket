@@ -12,6 +12,7 @@ import com.albadiego.breakmarket.repository.BetOptionRepository;
 import com.albadiego.breakmarket.repository.BetTicketRepository;
 import com.albadiego.breakmarket.repository.UserRepository;
 import com.albadiego.breakmarket.utils.enums.BetState;
+import com.albadiego.breakmarket.utils.enums.TicketState;
 import com.albadiego.breakmarket.utils.specifications.BetSpecification;
 import com.albadiego.breakmarket.utils.specifications.TicketSpecification;
 import org.springframework.data.jpa.domain.Specification;
@@ -45,8 +46,8 @@ public class BetTicketService {
     }
 
     @Transactional(readOnly = true)
-    public BetTicket findById(UUID uuid) {
-        return ticketRepository.findById(uuid)
+    public BetTicketDto findById(UUID uuid) {
+        return ticketRepository.findById(uuid).map(this::toDto)
                 .orElseThrow(() -> new BetTicketNotFoundException(uuid));
     }
 
@@ -127,7 +128,7 @@ public class BetTicketService {
         ticket.setOption(selectedOption);
         ticket.setRate(selectedOption.getCurrentRate().floatValue());
         ticket.setQuantity(quantity);
-        ticket.setState("OPEN");
+        ticket.setState(TicketState.PENDING);
         ticket.setCreatedDate(Instant.now());
 
         // Guardar el ticket en la base de datos
@@ -152,14 +153,16 @@ public class BetTicketService {
     }
 
     @Transactional
-    public BetTicket resolve(UUID uuid, String state) {
+    public BetTicketDto resolve(UUID uuid, String state) {
         if (state == null || state.isBlank()) {
             throw new IllegalArgumentException("State is required");
         }
-        BetTicket ticket = findById(uuid);
-        ticket.setState(state);
+        BetTicket ticket = ticketRepository.findById(uuid)
+                .orElseThrow(() -> new BetTicketNotFoundException(uuid));
+        // TODO - Comprobar esto
+        ticket.setState(TicketState.PENDING);
         ticket.setResolvedDate(Instant.now());
-        return ticketRepository.save(ticket);
+        return toDto(ticketRepository.save(ticket));
     }
 
     private User requireUser(UUID uuid) {

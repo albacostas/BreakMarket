@@ -1,5 +1,6 @@
 package com.albadiego.breakmarket.service;
 
+import com.albadiego.breakmarket.dto.BetOptionDto;
 import com.albadiego.breakmarket.exceptions.BetNotFoundException;
 import com.albadiego.breakmarket.exceptions.BetOptionNotFoundException;
 import com.albadiego.breakmarket.model.Bet;
@@ -31,8 +32,8 @@ public class BetOptionService {
     }
 
     @Transactional(readOnly = true)
-    public BetOption findById(UUID uuid) throws BetOptionNotFoundException {
-        return optionRepository.findById(uuid)
+    public BetOptionDto findById(UUID uuid) throws BetOptionNotFoundException {
+        return optionRepository.findById(uuid).map(this::toDto)
                 .orElseThrow(() -> new BetOptionNotFoundException(uuid));
     }
 
@@ -53,22 +54,36 @@ public class BetOptionService {
     }
 
     @Transactional
-    public BetOption updateRate(UUID uuid, BigDecimal currentRate) throws BetOptionNotFoundException {
+    public BetOptionDto updateRate(UUID uuid, BigDecimal currentRate) throws BetOptionNotFoundException {
         if (currentRate == null || currentRate.signum() <= 0) {
             throw new IllegalArgumentException("Rate must be positive");
         }
-        BetOption option = findById(uuid);
+        BetOption option = optionRepository.findById(uuid)
+                .orElseThrow(() -> new BetOptionNotFoundException(uuid));
+
         option.setCurrentRate(currentRate);
-        return optionRepository.save(option);
+        return toDto(optionRepository.save(option));
     }
 
     @Transactional
     public void delete(UUID uuid) throws BetOptionNotFoundException {
-        optionRepository.delete(findById(uuid));
+        BetOption option = optionRepository.findById(uuid)
+                .orElseThrow(() -> new BetOptionNotFoundException(uuid));
+
+        optionRepository.delete(option);
     }
 
     private Bet requireBet(UUID uuid) {
         return betRepository.findById(uuid)
                 .orElseThrow(() -> new BetNotFoundException(uuid));
+    }
+
+    private BetOptionDto toDto(BetOption option) {
+        return new BetOptionDto(
+                option.getUuid(),
+                option.getDescription(),
+                option.getCurrentRate(),
+                option.getTotalPool()
+        );
     }
 }

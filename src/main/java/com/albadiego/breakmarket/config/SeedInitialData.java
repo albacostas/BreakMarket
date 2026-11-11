@@ -14,9 +14,7 @@ import com.albadiego.breakmarket.repository.CoupleRepository;
 import com.albadiego.breakmarket.repository.EvidenceRepository;
 import com.albadiego.breakmarket.repository.PersonRepository;
 import com.albadiego.breakmarket.repository.UserRepository;
-import com.albadiego.breakmarket.utils.enums.BetState;
-import com.albadiego.breakmarket.utils.enums.BetType;
-import com.albadiego.breakmarket.utils.enums.EvidenceState;
+import com.albadiego.breakmarket.utils.enums.*;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -66,7 +64,7 @@ public class SeedInitialData implements CommandLineRunner {
                     user.setFullName("Administrador");
                     user.setEmail("admin@breakmarket.com");
                     user.setCoins(BigDecimal.valueOf(1000));
-                    user.setRole("ADMIN");
+                    user.setRole(UserRole.ADMIN);
                     return userRepository.save(user);
                 });
 
@@ -80,7 +78,7 @@ public class SeedInitialData implements CommandLineRunner {
             personB = personRepository.save(personB);
 
             Couple couple = new Couple();
-            couple.setStatus("ACTIVE");
+            couple.setStatus(CoupleState.RELATIONSHIP);
             couple.setStartDate(Instant.now());
             couple.setPersonA(personA);
             couple.setPersonB(personB);
@@ -133,7 +131,7 @@ public class SeedInitialData implements CommandLineRunner {
                         user.setFullName("Usuario de pruebas");
                         user.setEmail("tester@breakmarket.com");
                         user.setCoins(BigDecimal.valueOf(1000));
-                        user.setRole("USER");
+                        user.setRole(UserRole.USER);
                         return userRepository.save(user);
                     });
 
@@ -144,7 +142,7 @@ public class SeedInitialData implements CommandLineRunner {
             ticket.setOption(option);
             ticket.setRate(option.getCurrentRate().floatValue());
             ticket.setQuantity(10);
-            ticket.setState("OPEN");
+            ticket.setState(TicketState.PENDING);
             ticket.setCreatedDate(Instant.now());
             betTicketRepository.save(ticket);
         }

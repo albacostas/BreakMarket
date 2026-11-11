@@ -3,17 +3,14 @@ package com.albadiego.breakmarket.controller;
 import com.albadiego.breakmarket.dto.*;
 import com.albadiego.breakmarket.exceptions.*;
 import com.albadiego.breakmarket.model.BetOption;
-import com.albadiego.breakmarket.model.BetTicket;
 import com.albadiego.breakmarket.service.BetOptionService;
 import com.albadiego.breakmarket.service.BetService;
 import com.albadiego.breakmarket.service.BetTicketService;
 import com.albadiego.breakmarket.service.EvidenceService;
-import com.albadiego.breakmarket.utils.patch.JsonPatchOperation;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -27,7 +24,6 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.util.Date;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
@@ -231,12 +227,12 @@ public class BetController {
     }
 
     @GetMapping("/{betUuid}/options/{optionUuid}")
-    public ResponseEntity<BetOption> getBetOption(@PathVariable UUID optionUuid) throws BetOptionNotFoundException {
+    public ResponseEntity<BetOptionDto> getBetOption(@PathVariable UUID optionUuid) throws BetOptionNotFoundException {
         return ResponseEntity.ok().headers(jsonHeaders()).body(betOptionService.findById(optionUuid));
     }
 
     @PatchMapping("/{betUuid}/options/{optionUuid}")
-    public ResponseEntity<BetOption> updateBetOptionRate(
+    public ResponseEntity<BetOptionDto> updateBetOptionRate(
             @PathVariable UUID optionUuid,
             @RequestParam java.math.BigDecimal currentRate) throws BetOptionNotFoundException {
         return ResponseEntity.ok().headers(jsonHeaders()).body(betOptionService.updateRate(optionUuid, currentRate));
@@ -299,12 +295,12 @@ public class BetController {
     }
 
     @GetMapping("/tickets/{ticketUuid}")
-    public ResponseEntity<BetTicket> getBetTicket(@PathVariable UUID ticketUuid) {
+    public ResponseEntity<BetTicketDto> getBetTicket(@PathVariable UUID ticketUuid) {
         return ResponseEntity.ok().headers(jsonHeaders()).body(betTicketService.findById(ticketUuid));
     }
 
     @PatchMapping("/tickets/{ticketUuid}/resolve")
-    public ResponseEntity<BetTicket> resolveBetTicket(
+    public ResponseEntity<BetTicketDto> resolveBetTicket(
             @PathVariable UUID ticketUuid,
             @RequestParam String state) {
         return ResponseEntity.ok().headers(jsonHeaders()).body(betTicketService.resolve(ticketUuid, state));

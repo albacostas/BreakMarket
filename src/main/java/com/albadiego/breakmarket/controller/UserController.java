@@ -4,7 +4,6 @@ import com.albadiego.breakmarket.dto.CreateUserDto;
 import com.albadiego.breakmarket.dto.UserDto;
 import com.albadiego.breakmarket.exceptions.*;
 import com.albadiego.breakmarket.service.UserService;
-import com.albadiego.breakmarket.utils.patch.JsonPatchOperation;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
