@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -56,7 +57,7 @@ public class BetTicketService {
     }
 
     @Transactional(readOnly = true)
-    public List<BetTicketDto> findByBet(UUID betUuid, Date date, UUID authorID, String option) {
+    public List<BetTicketDto> findByBet(UUID betUuid, LocalDate date, UUID authorID, UUID option) {
         // Obligar a que se especifique un bet UUID
         requireBet(betUuid);
 

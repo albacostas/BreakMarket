@@ -1,5 +1,6 @@
 package com.albadiego.breakmarket.dto;
 
+import com.albadiego.breakmarket.utils.enums.BetType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.Valid;

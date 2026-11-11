@@ -1,6 +1,7 @@
 package com.albadiego.breakmarket.model;
 
 import com.albadiego.breakmarket.utils.enums.BetState;
+import com.albadiego.breakmarket.utils.enums.BetType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -31,7 +32,7 @@ public class Bet {
     private Couple couple;
 
     @Column(nullable = false)
-    private String type;
+    private BetType type;
 
     @Column(nullable = false)
     private String description;

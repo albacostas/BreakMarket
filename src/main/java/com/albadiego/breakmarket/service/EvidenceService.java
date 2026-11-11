@@ -1,8 +1,10 @@
 package com.albadiego.breakmarket.service;
 
+import com.albadiego.breakmarket.dto.CreateEvidenceDto;
 import com.albadiego.breakmarket.dto.EvidenceDto;
 import com.albadiego.breakmarket.exceptions.BetNotFoundException;
 import com.albadiego.breakmarket.exceptions.EvidenceNotFoundException;
+import com.albadiego.breakmarket.exceptions.InvalidEvidenceStateException;
 import com.albadiego.breakmarket.exceptions.UserNotFoundException;
 import com.albadiego.breakmarket.model.Bet;
 import com.albadiego.breakmarket.model.Couple;
@@ -11,6 +13,7 @@ import com.albadiego.breakmarket.model.User;
 import com.albadiego.breakmarket.repository.BetRepository;
 import com.albadiego.breakmarket.repository.EvidenceRepository;
 import com.albadiego.breakmarket.repository.UserRepository;
+import com.albadiego.breakmarket.utils.enums.EvidenceState;
 import com.albadiego.breakmarket.utils.specifications.CoupleSpecification;
 import com.albadiego.breakmarket.utils.specifications.EvidenceSpecification;
 import org.springframework.data.jpa.domain.Specification;
@@ -80,6 +83,33 @@ public class EvidenceService {
     }
 
     @Transactional(readOnly = true)
+    public List<EvidenceDto> filterByBet(UUID betUuid, String state) throws InvalidEvidenceStateException {
+        requireBet(betUuid);
+
+        if(state != null) {
+            try {
+                EvidenceState evidenceState = EvidenceState.valueOf(state);
+                return evidenceRepository
+                        .findByBetUuid(betUuid)
+                        .stream()
+                        .filter(e -> e.getState().equals(evidenceState))
+                        .map(this::toDto)
+                        .toList();
+            }
+            catch (IllegalArgumentException e) {
+                throw new InvalidEvidenceStateException(state);
+            }
+        }
+        else{
+            return evidenceRepository
+                    .findByBetUuid(betUuid)
+                    .stream()
+                    .map(this::toDto)
+                    .toList();
+        }
+    }
+
+    @Transactional(readOnly = true)
     public List<EvidenceDto> findPending() {
         return evidenceRepository
                 .findByState("PENDING")
@@ -89,9 +119,11 @@ public class EvidenceService {
     }
 
     @Transactional
-    public EvidenceDto submit(UUID betUuid, UUID authorUuid, String comment) {
+    public EvidenceDto submit(UUID betUuid, CreateEvidenceDto createEvidenceDto) {
         Bet bet = requireBet(betUuid);
-        User author = requireUser(authorUuid);
+        User author = requireUser(createEvidenceDto.authorUUID());
+        String comment = createEvidenceDto.comment();
+
         if (comment == null || comment.isBlank()) {
             throw new IllegalArgumentException("Comment is required");
         }
@@ -101,7 +133,7 @@ public class EvidenceService {
         evidence.setAuthor(author);
         evidence.setComment(comment);
         evidence.setSubmittedDate(Instant.now());
-        evidence.setState("PENDING");
+        evidence.setState(EvidenceState.PENDING);
         return toDto(evidenceRepository.save(evidence));
     }
 
@@ -120,7 +152,8 @@ public class EvidenceService {
 
         evidence.setReviewer(reviewer);
         evidence.setReviewedDate(Instant.now());
-        evidence.setState(state.toUpperCase());
+        // TODO - Cambiar, está mal
+        evidence.setState(EvidenceState.PENDING);
         return toDto(evidenceRepository.save(evidence));
     }
 

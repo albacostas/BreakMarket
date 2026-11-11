@@ -131,4 +131,10 @@ public class ErrorController {
     public ResponseEntity<String> handleNotEnoughCoinsException(NotEnoughCoinsException exception) {
         return new ResponseEntity<>("No se puede procesar la apuesta, ya que se requieren " + exception.getPurchaseCoins() + " monedas y solo tiene " + exception.getAvailableCoins() + " disponibles\n", HttpStatus.UNPROCESSABLE_CONTENT);
     }
+
+    // Capturar las excepciones cuando se especifica un estado de prueba que no es válido
+    @ExceptionHandler(InvalidEvidenceStateException.class)
+    public ResponseEntity<String> handleInvalidEvidenceStateException(InvalidEvidenceStateException exception) {
+        return new ResponseEntity<>("El estado " + exception.getState() + " no es un valor válido de estado para las pruebas\n", HttpStatus.UNPROCESSABLE_CONTENT);
+    }
 }

@@ -18,7 +18,7 @@ public class TicketSpecification {
         };
     }
 
-    public static Specification<BetTicket> ticketOptionTypeEquals(String option) {
+    public static Specification<BetTicket> ticketOptionTypeEquals(UUID option) {
         return (root, query, builder) -> {
             if(option == null) {
                 return builder.conjunction();

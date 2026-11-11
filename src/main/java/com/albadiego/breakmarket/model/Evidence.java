@@ -1,5 +1,6 @@
 package com.albadiego.breakmarket.model;
 
+import com.albadiego.breakmarket.utils.enums.EvidenceState;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -42,5 +43,5 @@ public class Evidence {
     private Instant reviewedDate;
 
     @Column(nullable = false)
-    private String state;
+    private EvidenceState state;
 }

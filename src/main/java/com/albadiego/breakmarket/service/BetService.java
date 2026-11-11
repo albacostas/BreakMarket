@@ -77,7 +77,7 @@ public class BetService {
         Bet bet = new Bet();
         bet.setCreator(creator);
         bet.setCouple(couple);
-        bet.setType(dto.type());
+        bet.setType(betType);
         bet.setDescription(dto.description());
         bet.setState(BetState.ACTIVE);
         bet.setStartDate(Instant.now());
@@ -164,7 +164,7 @@ public class BetService {
             bet.setBetOptions(List.of(betOptionYes, betOptionNo));
         }
         else {
-            throw new BetTypeNotSupportedException(dto.type());
+            throw new BetTypeNotSupportedException(dto.type().toString());
         }
 
         // Guardar la apuesta creada
@@ -227,11 +227,11 @@ public class BetService {
             String description,
             String type,
             String state,
-            Date startDate
+            LocalDate startDate
     ) {
         // Crear una Specification que combine los parámetros que no sean nulos de todos los posibles
         Specification<Bet> coupleFilter = BetSpecification.betCoupleUuidEquals(coupleId);
-        Specification<Bet> descriptionFilter = BetSpecification.betDescriptionEquals(description);
+        Specification<Bet> descriptionFilter = BetSpecification.betDescriptionContains(description);
         Specification<Bet> creatorFilter = BetSpecification.betCreatorUuidEquals(authorId);
         Specification<Bet> typeFilter = BetSpecification.betTypeEquals(type);
         Specification<Bet> stateFilter = BetSpecification.betStateEquals(state);

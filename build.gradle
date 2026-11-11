@@ -41,6 +41,9 @@ dependencies {
     testAnnotationProcessor 'org.projectlombok:lombok'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
     implementation "org.jetbrains.kotlin:kotlin-stdlib"
+
+    // Dependencias para OpenAPI
+    implementation "org.springdoc:springdoc-openapi-starter-webmvc-scalar:3.2.0"
 }
 
 tasks.named('test') {

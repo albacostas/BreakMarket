@@ -1,8 +1,11 @@
 package com.albadiego.breakmarket.utils.specifications;
 
 import com.albadiego.breakmarket.model.Bet;
+import org.springframework.cglib.core.Local;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.UUID;
 import java.util.Date;
 
@@ -19,7 +22,7 @@ public class BetSpecification {
         };
     }
 
-    public static Specification<Bet> betDescriptionEquals(String description) {
+    public static Specification<Bet> betDescriptionContains(String description) {
         return (root, query, builder) -> {
             if(description == null) {
                 return builder.conjunction();
@@ -61,9 +64,9 @@ public class BetSpecification {
                 : builder.equal(root.get("state"), state);
     }
 
-    public static Specification<Bet> betStartDateAfterOrEqual(Date startDate) {
+    public static Specification<Bet> betStartDateAfterOrEqual(LocalDate startDate) {
         return (root, query, builder) -> startDate == null
                 ? builder.conjunction()
-                : builder.greaterThanOrEqualTo(root.get("startDate"), startDate.toInstant());
+                : builder.greaterThanOrEqualTo(root.get("startDate"), startDate.atStartOfDay(ZoneId.of("Europe/Madrid")).toInstant());
     }
 }

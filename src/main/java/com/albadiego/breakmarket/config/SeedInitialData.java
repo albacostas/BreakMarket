@@ -15,6 +15,8 @@ import com.albadiego.breakmarket.repository.EvidenceRepository;
 import com.albadiego.breakmarket.repository.PersonRepository;
 import com.albadiego.breakmarket.repository.UserRepository;
 import com.albadiego.breakmarket.utils.enums.BetState;
+import com.albadiego.breakmarket.utils.enums.BetType;
+import com.albadiego.breakmarket.utils.enums.EvidenceState;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -87,7 +89,7 @@ public class SeedInitialData implements CommandLineRunner {
             Bet bet = new Bet();
             bet.setCreator(admin);
             bet.setCouple(couple);
-            bet.setType("RELATIONSHIP");
+            bet.setType(BetType.YES_NO);
             bet.setDescription("¿Seguirán Ana y Luis juntos al finalizar el año?");
             bet.setState(BetState.ACTIVE);
             bet.setStartDate(Instant.now());
@@ -153,7 +155,7 @@ public class SeedInitialData implements CommandLineRunner {
             evidence.setAuthor(admin);
             evidence.setComment("Prueba inicial para validar la apuesta.");
             evidence.setSubmittedDate(Instant.now());
-            evidence.setState("PENDING");
+            evidence.setState(EvidenceState.PENDING);
             evidenceRepository.save(evidence);
         }
     }
