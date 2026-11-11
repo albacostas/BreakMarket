@@ -7,11 +7,11 @@ import jakarta.validation.constraints.NotNull;
 import java.util.UUID;
 
 public record CreateEvidenceDto(
-     @NotNull
-     @Schema(description = "Identificador único del usuario que envia la prueba", example = "123e4567-e89b-12d3-a456-426614174000")
+     @NotNull(message = "El UUID del creador de la prueba no puede ser nulo")
+     @Schema(description = "Identificador único del usuario que envía la prueba", example = "123e4567-e89b-12d3-a456-426614174000")
      UUID authorUUID,
 
-     @NotBlank
+     @NotBlank(message = "La descripción de la prueba no puede estar vacía")
      @Schema(description = "Explicación de la prueba aportada", example = "Me encontré con el en un bar con otra chica")
      String comment
 ) { }

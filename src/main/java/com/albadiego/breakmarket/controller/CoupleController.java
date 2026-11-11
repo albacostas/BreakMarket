@@ -4,6 +4,7 @@ import com.albadiego.breakmarket.dto.CoupleDto;
 import com.albadiego.breakmarket.dto.CreateCoupleDto;
 import com.albadiego.breakmarket.exceptions.*;
 import com.albadiego.breakmarket.service.CoupleService;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -32,7 +33,7 @@ public class CoupleController {
     }
 
     @PostMapping
-    public ResponseEntity<CoupleDto> createCouple(@RequestBody CreateCoupleDto newCouple) throws PersonNotFoundException, CoupleAlreadyExistsException, GeneralConstraintViolationException {
+    public ResponseEntity<CoupleDto> createCouple(@Valid @RequestBody CreateCoupleDto newCouple) throws PersonNotFoundException, CoupleAlreadyExistsException, GeneralConstraintViolationException {
         return ResponseEntity.ok(coupleService.insertCouple(newCouple));
     }
 

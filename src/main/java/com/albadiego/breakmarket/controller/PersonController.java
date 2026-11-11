@@ -4,6 +4,7 @@ import com.albadiego.breakmarket.dto.CreatePersonDto;
 import com.albadiego.breakmarket.dto.PersonDto;
 import com.albadiego.breakmarket.exceptions.*;
 import com.albadiego.breakmarket.service.PersonService;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -30,7 +31,7 @@ public class PersonController {
     }
 
     @PostMapping
-    public ResponseEntity<PersonDto> createPerson(@RequestBody CreatePersonDto newUser) throws PersonAlreadyExistsException, GeneralConstraintViolationException {
+    public ResponseEntity<PersonDto> createPerson(@Valid @RequestBody CreatePersonDto newUser) throws PersonAlreadyExistsException, GeneralConstraintViolationException {
         return ResponseEntity.ok(personService.insertPerson(newUser));
     }
 }

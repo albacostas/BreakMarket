@@ -218,7 +218,7 @@ public class BetController {
     public ResponseEntity<EvidenceDto> submitBetEvidence(
             @Parameter(description = "UUID de la apuesta", example = "123e4567-e89b-12d3-a456-426614174000", required = true)
             @PathVariable UUID betUuid,
-            @RequestBody CreateEvidenceDto createEvidenceDto
+            @Valid @RequestBody CreateEvidenceDto createEvidenceDto
     ) {
         EvidenceDto created = evidenceService.submit(betUuid, createEvidenceDto);
         return ResponseEntity.created(location(created.uuid()))
@@ -287,7 +287,7 @@ public class BetController {
     public ResponseEntity<BetTicketDto> createBetTicket(
             @Parameter(description = "UUID de la apuesta", example = "123e4567-e89b-12d3-a456-426614174000", required = true)
             @PathVariable UUID betUuid,
-            @RequestBody CreateBetTicketDto createBetTicketDto) throws BetOptionNotFoundException, BetClosedException, InvalidBetTicketQuantityException, NotEnoughCoinsException {
+            @Valid @RequestBody CreateBetTicketDto createBetTicketDto) throws BetOptionNotFoundException, BetClosedException, InvalidBetTicketQuantityException, NotEnoughCoinsException {
         BetTicketDto created = betTicketService.create(betUuid, createBetTicketDto);
         return ResponseEntity.created(location(created.uuid()))
                 .headers(jsonHeaders())

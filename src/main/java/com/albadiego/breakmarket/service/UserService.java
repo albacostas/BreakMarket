@@ -65,7 +65,7 @@ public class UserService {
         newUser.setPassword(user.password());
         newUser.setFullName(user.fullName());
         newUser.setEmail(user.email());
-        newUser.setRole(user.role());
+        newUser.setRole(Enum.valueOf(UserRole.class, user.role()));     // No hace falta comprobarlo porque solo llegar enums válidos
 
         // Insertar el usuario en la BD y coger el objeto creado
         try{

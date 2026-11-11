@@ -73,7 +73,7 @@ public class CoupleService {
 
         // Crear el objeto Couple a partir de los parámetros
         Couple newCouple = new Couple();
-        newCouple.setStatus(couple.status());
+        newCouple.setStatus(Enum.valueOf(CoupleState.class, couple.status()));      // No hace falta realizar la comprobación porque solo se reciben valores válidos
         newCouple.setStartDate(couple.startDate());
         newCouple.setPersonA(personA);
         newCouple.setPersonB(personB);

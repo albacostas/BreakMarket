@@ -4,6 +4,7 @@ import com.albadiego.breakmarket.dto.CreateUserDto;
 import com.albadiego.breakmarket.dto.UserDto;
 import com.albadiego.breakmarket.exceptions.*;
 import com.albadiego.breakmarket.service.UserService;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -32,7 +33,7 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<UserDto> createUser(@RequestBody CreateUserDto newUser) throws EmailAlreadyUsedException, UsernameAlreadyUsedException, GeneralConstraintViolationException {
+    public ResponseEntity<UserDto> createUser(@Valid @RequestBody CreateUserDto newUser) throws EmailAlreadyUsedException, UsernameAlreadyUsedException, GeneralConstraintViolationException {
         return ResponseEntity.ok(userService.insertUser(newUser));
     }
 

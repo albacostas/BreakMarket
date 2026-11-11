@@ -3,6 +3,7 @@ package com.albadiego.breakmarket.dto;
 import com.albadiego.breakmarket.utils.enums.BetState;
 import com.albadiego.breakmarket.utils.enums.BetType;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotNull;
 
 import java.time.Instant;
 import java.util.UUID;

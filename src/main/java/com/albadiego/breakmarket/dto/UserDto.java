@@ -2,6 +2,7 @@ package com.albadiego.breakmarket.dto;
 
 import com.albadiego.breakmarket.utils.enums.UserRole;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotNull;
 
 import java.math.BigDecimal;
 import java.util.UUID;

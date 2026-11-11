@@ -4,8 +4,12 @@ import com.albadiego.breakmarket.exceptions.*;
 import com.albadiego.breakmarket.utils.exceptions.JsonPatchFailedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @RestControllerAdvice
 public class ErrorController {
@@ -136,5 +140,19 @@ public class ErrorController {
     @ExceptionHandler(InvalidEvidenceStateException.class)
     public ResponseEntity<String> handleInvalidEvidenceStateException(InvalidEvidenceStateException exception) {
         return new ResponseEntity<>("El estado " + exception.getState() + " no es un valor válido de estado para las pruebas\n", HttpStatus.UNPROCESSABLE_CONTENT);
+    }
+
+    // Manejar los errores de Validación de Hibernate
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, String>> handleValidationException(
+            MethodArgumentNotValidException ex
+    ) {
+        Map<String, String> errors = new HashMap<>();
+
+        ex.getBindingResult().getFieldErrors().forEach(error ->
+                errors.put(error.getField(), error.getDefaultMessage())
+        );
+
+        return ResponseEntity.badRequest().body(errors);
     }
 }
