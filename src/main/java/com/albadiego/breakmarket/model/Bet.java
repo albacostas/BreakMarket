@@ -32,6 +32,7 @@ public class Bet {
     private Couple couple;
 
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private BetType type;
 
     @Column(nullable = false)

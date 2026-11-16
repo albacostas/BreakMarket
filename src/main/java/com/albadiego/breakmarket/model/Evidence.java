@@ -43,5 +43,6 @@ public class Evidence {
     private Instant reviewedDate;
 
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private EvidenceState state;
 }

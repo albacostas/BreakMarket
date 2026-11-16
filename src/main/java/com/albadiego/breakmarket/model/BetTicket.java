@@ -49,6 +49,7 @@ public class BetTicket {
     private Integer quantity;
 
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private TicketState state;
 
     @Column(nullable = false)

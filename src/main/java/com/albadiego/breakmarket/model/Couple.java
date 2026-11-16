@@ -22,6 +22,7 @@ public class Couple {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID uuid;
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private CoupleState status;
     @Column(nullable = true)
     private Instant startDate;

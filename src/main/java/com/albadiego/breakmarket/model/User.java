@@ -36,6 +36,7 @@ public class User {
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal coins;
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private UserRole role;
 
     @OneToMany(
