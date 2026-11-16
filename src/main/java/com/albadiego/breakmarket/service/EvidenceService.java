@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -43,7 +44,7 @@ public class EvidenceService {
     }
 
     @Transactional(readOnly = true)
-    public List<EvidenceDto> findAll(String state, UUID betID, Date submittedDate) {
+    public List<EvidenceDto> findAll(String state, UUID betID, LocalDate submittedDate) {
         // Crear una Specification que combine los parámetros que no sean nulos de todos los posibles
         Specification<Evidence> stateFilter = EvidenceSpecification.evidenceStateEquals(state);
         Specification<Evidence> betIDFilter = EvidenceSpecification.evidenceBetUuidEquals(betID);

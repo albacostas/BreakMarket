@@ -3,6 +3,8 @@ package com.albadiego.breakmarket.utils.specifications;
 import com.albadiego.breakmarket.model.Evidence;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.UUID;
 import java.util.Date;
 
@@ -30,9 +32,9 @@ public class EvidenceSpecification {
         };
     }
 
-    public static Specification<Evidence> evidenceSubmittedDateAfterOrEqual(Date submittedDate) {
+    public static Specification<Evidence> evidenceSubmittedDateAfterOrEqual(LocalDate submittedDate) {
         return (root, query, builder) -> submittedDate == null
                 ? builder.conjunction()
-                : builder.greaterThanOrEqualTo(root.get("submittedDate"), submittedDate.toInstant());
+                : builder.greaterThanOrEqualTo(root.get("submittedDate"), submittedDate.atStartOfDay(ZoneId.of("Europe/Madrid")));
     }
 }
