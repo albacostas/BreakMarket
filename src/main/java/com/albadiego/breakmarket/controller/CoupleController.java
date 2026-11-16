@@ -87,7 +87,7 @@ public class CoupleController {
     public ResponseEntity<CoupleDto> createCouple(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Datos para la creación de la pareja", required = true)
             @Valid @RequestBody CreateCoupleDto newCouple
-    ) throws PersonNotFoundException, CoupleAlreadyExistsException, GeneralConstraintViolationException {
+    ) throws PersonNotFoundException, CoupleAlreadyExistsException, GeneralConstraintViolationException, InvalidCoupleSizeException {
         return ResponseEntity.ok(coupleService.insertCouple(newCouple));
     }
 
@@ -114,8 +114,8 @@ public class CoupleController {
                                     example = """
                                         {
                                             "op": "replace",
-                                            "path": "/state",
-                                            "value": "CLOSED"
+                                            "path": "/status",
+                                            "value": "RELATIONSHIP"
                                         }
                                         """
                             )

@@ -64,7 +64,12 @@ public class CoupleService {
                 .orElseThrow( () -> new CoupleNotFoundException(uuid) );
     }
 
-    public CoupleDto insertCouple(CreateCoupleDto couple) throws PersonNotFoundException, CoupleAlreadyExistsException, GeneralConstraintViolationException {
+    public CoupleDto insertCouple(CreateCoupleDto couple) throws PersonNotFoundException, CoupleAlreadyExistsException, GeneralConstraintViolationException, InvalidCoupleSizeException {
+        // Comprobar que la pareja está formada por dos integrantes
+        if(couple.members().size() != 2) {
+            throw new InvalidCoupleSizeException(couple.members());
+        }
+
         // Buscar las Personas integrantes de la pareja
         Person personA = personRepository.findById(couple.members().get(0))
                 .orElseThrow( () -> new PersonNotFoundException(couple.members().get(0)));

@@ -157,4 +157,10 @@ public class ErrorController {
 
         return ResponseEntity.badRequest().body(errors);
     }
+
+    // Capturar las excepciones cuando se intenta crear una pareja con un número de miembros diferente a dos
+    @ExceptionHandler(InvalidCoupleSizeException.class)
+    public ResponseEntity<String> handleInvalidCoupleSizeException(InvalidCoupleSizeException exception) {
+        return new ResponseEntity<>("No se puede crear la pareja, ya que se requieren 2 miembros y se han especificado " + exception.getMembers().size(), HttpStatus.UNPROCESSABLE_CONTENT);
+    }
 }
