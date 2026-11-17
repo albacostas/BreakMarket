@@ -1,4 +1,11 @@
 package com.albadiego.breakmarket.dto;
 
-public class UserDetailsDto {
-}
+import com.albadiego.breakmarket.utils.enums.UserRole;
+
+import java.util.UUID;
+
+public record UserDetailsDto(
+        UUID uuid,
+        String username,
+        UserRole role
+) {}

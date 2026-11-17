@@ -1,4 +1,8 @@
 package com.albadiego.breakmarket.dto;
 
-public class RefreshRequestDto {
-}
+import java.util.UUID;
+
+public record RefreshRequestDto(
+        UUID refreshToken
+
+) {}

@@ -1,4 +1,6 @@
 package com.albadiego.breakmarket.dto;
 
-public class TokenResponseDto {
-}
+public record TokenResponseDto(
+        String token,
+        String refreshToken
+) {}

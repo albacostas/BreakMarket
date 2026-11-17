@@ -1,4 +1,6 @@
 package com.albadiego.breakmarket.dto;
 
-public class LoginDto {
-}
+public record LoginDto (
+        String username,
+        String password
+) {}
