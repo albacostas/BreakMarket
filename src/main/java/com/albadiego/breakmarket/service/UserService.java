@@ -62,7 +62,7 @@ public class UserService {
         // Crear el objeto User a partir de los parámetros del usuario
         User newUser = new User();
         newUser.setUsername(user.username());
-        newUser.setPassword(user.password());
+        //newUser.setPassword(user.password());
         newUser.setFullName(user.fullName());
         newUser.setEmail(user.email());
         newUser.setRole(Enum.valueOf(UserRole.class, user.role()));     // No hace falta comprobarlo porque solo llegar enums válidos
@@ -123,7 +123,7 @@ public class UserService {
 
         // Aplicar los cambios del DTO al usuario de la BD. Solo puede cambiar el nombre, contraseña o rol
         user.setFullName(userDto.fullName());
-        user.setPassword(userDto.password());
+        //user.setPassword(userDto.password());
         user.setRole(userDto.role());
 
         // Actualizar el valor del usuario en la BD
@@ -134,7 +134,7 @@ public class UserService {
         return new UserDto(
                 user.getUuid(),
                 user.getUsername(),
-                user.getPassword(),
+                //user.getPassword(),
                 user.getFullName(),
                 user.getEmail(),
                 user.getCoins(),

@@ -27,8 +27,9 @@ public class User {
     private UUID uuid;
     @Column(nullable = false, unique = true)
     private String username;
-    @Column(nullable = false)
-    private String password;
+    // La password se almacena en el servidor de OAuth. Se almacena el ID de Keycloak
+    //@Column(nullable = false, unique = true)
+    //private String keycloakUserId;
     @Column(nullable = false)
     private String fullName;
     @Column(nullable = false, unique = true)
