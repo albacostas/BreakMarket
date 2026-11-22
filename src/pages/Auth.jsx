@@ -1,0 +1,41 @@
+import { useState } from 'react'
+import { Heart, ArrowRight } from 'lucide-react'
+import { useAuth } from '../context/AuthContext'
+import { useNavigate } from 'react-router-dom'
+
+export default function Auth() {
+  const [tab, setTab] = useState('login')
+  const [form, setForm] = useState({ username: '', email: '', password: '', avatar_url: '' })
+  const [error, setError] = useState('')
+  const { login, register, loading } = useAuth()
+  const navigate = useNavigate()
+
+  const submit = async (event) => {
+    event.preventDefault()
+    setError('')
+    try {
+      if (tab === 'login') await login({ email: form.email, password: form.password })
+      else await register(form)
+      navigate('/')
+    } catch { setError('No pudimos iniciar sesión. Revisa tus datos.') }
+  }
+
+  const set = (key) => (event) => setForm({ ...form, [key]: event.target.value })
+  return (
+    <div className="auth-page">
+      <form className="auth-card" onSubmit={submit}>
+        <div className="auth-logo"><Heart size={24} fill="currentColor" /></div>
+        <h1>Bienvenido al salseo</h1>
+        <p>Predice, apuesta y gana con el grupo.</p>
+        <div className="auth-tabs"><button type="button" className={tab === 'login' ? 'active' : ''} onClick={() => setTab('login')}>Entrar</button><button type="button" className={tab === 'register' ? 'active' : ''} onClick={() => setTab('register')}>Unirse al club</button></div>
+        {tab === 'register' && <label>Nombre de usuario<input value={form.username} onChange={set('username')} required placeholder="Tu nombre público" /></label>}
+        <label>Email<input type="email" value={form.email} onChange={set('email')} required placeholder="tu@email.com" /></label>
+        <label>Contraseña<input type="password" value={form.password} onChange={set('password')} required minLength={4} placeholder="••••••••" /></label>
+        {tab === 'register' && <label>Avatar <span>(opcional)</span><input value={form.avatar_url} onChange={set('avatar_url')} placeholder="https://..." /></label>}
+        {error && <div className="form-error">{error}</div>}
+        <button className="auth-submit" disabled={loading}>{loading ? 'Entrando...' : tab === 'login' ? 'Entrar al club' : 'Recibir 1.000 💔'}<ArrowRight size={18} /></button>
+        <small>Al continuar aceptas las reglas del cotilleo.</small>
+      </form>
+    </div>
+  )
+}
