@@ -43,28 +43,28 @@ export default function BetSlip() {
 
   return (
     <>
-      <button className="drawer-backdrop" onClick={closeSlip} aria-label="Cerrar" />
-      <aside className="bet-slip">
+      <button className="drawer-backdrop" onClick={closeSlip} aria-label="Cerrar boleto" />
+      <aside className="bet-slip" aria-label="Boleto de apuesta">
         {confirmed ? (
-          <div className="confirmed"><Sparkles size={38} /><h3>¡Salseo confirmado!</h3></div>
+          <div className="confirmed"><Sparkles size={38} /><h3>¡Apuesta sellada!</h3><p>Tu jugada ya está en la mesa VIP.</p></div>
         ) : (
           <>
-            <div className="slip-header"><div><span>Tu apuesta</span><h3>{selection.market.title}</h3></div><button onClick={closeSlip}><X size={20} /></button></div>
+            <div className="slip-header"><div><span>Boleto VIP</span><h3>{selection.market.title}</h3></div><button onClick={closeSlip} aria-label="Cerrar"><X size={20} /></button></div>
             <div className="selected-option"><div><small>Selección</small><strong>{selection.option.label}</strong></div><b>x{quota.toFixed(2)}</b></div>
-            <label className="amount-label">Monto de la apuesta</label>
+            <label className="amount-label" htmlFor="bet-amount">Fichas a apostar</label>
             <div className="amount-control">
-              <button onClick={() => setAmount(Math.max(0, safeAmount - 10))}><Minus size={17} /></button>
-              <input type="number" value={amount} min="0" max={maxAmount} onChange={(e) => setAmount(e.target.value)} />
-              <button onClick={() => setAmount(safeAmount + 10)}><Plus size={17} /></button>
+              <button type="button" aria-label="Reducir cantidad" onClick={() => setAmount(Math.max(0, safeAmount - 10))}><Minus size={17} /></button>
+              <input id="bet-amount" type="number" value={amount} min="0" max={maxAmount} onChange={(e) => setAmount(e.target.value)} />
+              <button type="button" aria-label="Aumentar cantidad" onClick={() => setAmount(safeAmount + 10)}><Plus size={17} /></button>
             </div>
             <div className="quick-amounts">
-              {[10, 50, 100].map(v => <button key={v} onClick={() => setAmount(safeAmount + v)}>+{v}</button>)}
-              <button onClick={() => setAmount(maxAmount)}>MAX</button>
+              {[10, 50, 100].map((v) => <button key={v} type="button" onClick={() => setAmount(safeAmount + v)}>+{v}</button>)}
+              <button type="button" onClick={() => setAmount(maxAmount)}>MAX</button>
             </div>
-            <div className="return-box"><span>Retorno estimado</span><strong>{returnAmount} <b>💔</b></strong></div>
-            {error && <div className="form-error">{error}</div>}
+            <div className="return-box"><span>Premio potencial</span><strong>{returnAmount} <b>💔</b></strong></div>
+            {error && <div className="form-error" role="alert">{error}</div>}
             <button className="confirm-bet" disabled={submitting || !hasValidUser || safeAmount < 1 || cost > balance} onClick={confirm}>
-              {submitting ? 'Confirmando...' : hasValidUser ? 'Confirmar Salseo' : 'Inicia sesión con un usuario real'}
+              {submitting ? 'Sellando...' : hasValidUser ? 'Confirmar jugada' : 'Inicia sesión con un usuario real'}
             </button>
           </>
         )}

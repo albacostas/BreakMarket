@@ -14,7 +14,7 @@ export default function App() {
     <div className="app-shell">
       <Header />
       <DesktopNav />
-      <main className="main-content">
+      <main className="main-content" id="main-content">
         <Routes>
           <Route path="/" element={<Feed />} />
           <Route path="/auth" element={<Auth />} />

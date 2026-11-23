@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { ArrowUpRight, Heart, Flame } from 'lucide-react'
+import { ArrowUpRight, Heart } from 'lucide-react'
 import { useBetSlip } from '../context/BetSlipContext'
 
 export default function MarketCard({ market, featured = false }) {
@@ -13,18 +13,18 @@ export default function MarketCard({ market, featured = false }) {
       </div>
       <div className="couple-avatars">
         <img src={market.personA.avatar} alt={market.personA.name} />
-        <div className="heart-seal"><Heart size={16} fill="currentColor" /></div>
+        <div className="heart-seal" aria-hidden="true"><Heart size={16} fill="currentColor" /></div>
         <img src={market.personB.avatar} alt={market.personB.name} />
       </div>
       <Link to={`/market/${market.id}`} className="market-question">
         <h3>{market.title}</h3>
       </Link>
-      <div className="probability-row"><strong>{market.probability}%</strong><span>{market.closing}</span></div>
+      <div className="probability-row"><strong>{market.probability}% SÍ</strong><span>{market.closing}</span></div>
       {multiple ? (
         <button className="multiple-button" onClick={() => openSlip(market, market.options[0])}>Ver {market.options.length} opciones <ArrowUpRight size={16} /></button>
       ) : (
         <>
-          <div className="probability-bar"><div style={{ width: `${market.probability}%` }} /><div /></div>
+          <div className="probability-bar" aria-hidden="true"><div style={{ width: `${market.probability}%` }} /><div /></div>
           <div className="quick-bets">
             <button className="bet-yes" onClick={() => openSlip(market, market.options[0])}><span>SÍ</span><b>x{market.yesOdds.toFixed(2)}</b></button>
             <button className="bet-no" onClick={() => openSlip(market, market.options[1])}><span>NO</span><b>x{market.noOdds.toFixed(2)}</b></button>
