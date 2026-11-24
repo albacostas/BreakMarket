@@ -1,13 +1,21 @@
 import axios from 'axios'
 
+let accessTokenProvider
+
 export const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '/api',
   timeout: 2500,
 })
 
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('bm_token')
-  if (token) config.headers.Authorization = `Bearer ${token}`
+export const setAccessTokenProvider = (provider) => {
+  accessTokenProvider = provider
+}
+
+api.interceptors.request.use(async (config) => {
+  if (accessTokenProvider) {
+    const token = await accessTokenProvider()
+    if (token) config.headers.Authorization = `Bearer ${token}`
+  }
   return config
 })
 
@@ -265,22 +273,7 @@ export const betService = {
 }
 
 export const authService = {
-  login: async (payload) => {
-    const { data: users } = await api.get('/users')
-    const user = users.find(item => item.email === payload.email)
-    if (!user || user.password !== payload.password) throw new Error('Credenciales no válidas')
-    return { access_token: '', user: normalizeUser(user) }
-  },
-  register: async (payload) => {
-    const { data } = await api.post('/users', {
-      username: payload.username,
-      password: payload.password,
-      fullName: payload.username,
-      email: payload.email,
-      role: 'USER',
-    })
-    return { access_token: '', user: normalizeUser(data) }
-  },
+  me: async () => normalizeUser((await api.get('/auth/me')).data),
 }
 
 const normalizeUser = (user) => ({
@@ -296,10 +289,7 @@ export const userService = {
     return data.map(normalizeUser)
   },
   me: async () => {
-    const stored = JSON.parse(localStorage.getItem('bm_user') || 'null')
-    if (!stored?.id) throw new Error('No hay sesión activa')
-    const { data } = await api.get(`/users/${stored.id}`)
-    return normalizeUser(data)
+    return authService.me()
   },
   leaderboard: async () => {
     const users = await userService.list()

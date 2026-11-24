@@ -1,7 +1,5 @@
 package com.albadiego.breakmarket.controller;
 
-import com.albadiego.breakmarket.dto.BetDto;
-import com.albadiego.breakmarket.dto.CreateUserDto;
 import com.albadiego.breakmarket.dto.UserDto;
 import com.albadiego.breakmarket.exceptions.*;
 import com.albadiego.breakmarket.service.UserService;
@@ -13,7 +11,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -72,25 +69,6 @@ public class UserController {
     }
 
     @Operation(
-            summary = "Crear un nuevo usuario",
-            description = "Definir las características de un nuevo usuario y registrarlo en el sistema"
-    )
-    @ApiResponses(value = {
-            @ApiResponse(
-                    responseCode = "201",
-                    description = "Usuario creado con éxito",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserDto.class))
-            )
-    })
-    @PostMapping
-    public ResponseEntity<UserDto> createUser(
-            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Datos para la creación del usuario", required = true)
-            @Valid @RequestBody CreateUserDto newUser
-    ) throws EmailAlreadyUsedException, UsernameAlreadyUsedException, GeneralConstraintViolationException {
-        return ResponseEntity.ok(userService.insertUser(newUser));
-    }
-
-    @Operation(
             summary = "Modificar los datos de un usuario",
             description = "Cambiar el nombre, contraseña o rol de un usuario identificado por su UUID"
     )
@@ -120,7 +98,7 @@ public class UserController {
                             )
                     )))
             @RequestBody List<Map<String, Object>> changes
-    ) throws UserNotFoundException, UnsupportedPatchPathException, InvalidEnumStateException {
+    ) throws UserNotFoundException, UnsupportedPatchPathException {
         return ResponseEntity.ok(userService.updateUser(uuid, changes));
     };
 }

@@ -1,20 +1,12 @@
 package com.albadiego.breakmarket.service;
 
-import com.albadiego.breakmarket.dto.CreateUserDto;
 import com.albadiego.breakmarket.dto.UserDto;
 import com.albadiego.breakmarket.exceptions.*;
-import com.albadiego.breakmarket.model.Person;
 import com.albadiego.breakmarket.model.User;
 import com.albadiego.breakmarket.repository.UserRepository;
-import com.albadiego.breakmarket.utils.enums.CoupleState;
 import com.albadiego.breakmarket.utils.enums.UserRole;
-import com.albadiego.breakmarket.utils.patch.JsonPatch;
-import com.albadiego.breakmarket.utils.patch.JsonPatchOperation;
 import com.albadiego.breakmarket.utils.patch.JsonPatchValidation;
-import com.albadiego.breakmarket.utils.specifications.PeopleSpecification;
 import com.albadiego.breakmarket.utils.specifications.UserSpecification;
-import org.hibernate.exception.ConstraintViolationException;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.AllArgsConstructor;
@@ -23,6 +15,7 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
@@ -58,57 +51,61 @@ public class UserService {
                 .orElseThrow( () -> new UserNotFoundException(uuid) );
     }
 
-    public UserDto insertUser(CreateUserDto user) throws EmailAlreadyUsedException, UsernameAlreadyUsedException, GeneralConstraintViolationException {
-        // Crear el objeto User a partir de los parámetros del usuario
-        User newUser = new User();
-        newUser.setUsername(user.username());
-        //newUser.setPassword(user.password());
-        newUser.setFullName(user.fullName());
-        newUser.setEmail(user.email());
-        newUser.setRole(Enum.valueOf(UserRole.class, user.role()));     // No hace falta comprobarlo porque solo llegar enums válidos
-
-        // Insertar el usuario en la BD y coger el objeto creado
-        try{
-            User createdUser = userRepository.save(newUser);
-
-            // Devolver el nuevo usuario convertido a DTO
-            return toDto(createdUser);
+    @Transactional
+    public UserDto findOrCreateOAuthUser(String email, String name, String preferredUsername) {
+        if (email == null || email.isBlank()) {
+            throw new IllegalArgumentException("The OAuth provider did not return an email address");
         }
-        catch (DataIntegrityViolationException e){
-            Throwable cause = e.getCause();
 
-            if(cause instanceof ConstraintViolationException constraintException){
-                String name = constraintException.getConstraintName();
-                if(name != null){
-                    if(name.equals("uk6dotkott2kjsp8vw4d0m25fb7")){
-                        throw new EmailAlreadyUsedException(user.email());
-                    }
-                    else if(name.equals("ukr43af9ap4edm43mmtq01oddj6")){
-                        throw new UsernameAlreadyUsedException(user.username());
-                    }
-                }
-            }
-            throw new GeneralConstraintViolationException(e);
+        String normalizedEmail = email.trim().toLowerCase(Locale.ROOT);
+        int separator = normalizedEmail.indexOf('@');
+        if (separator <= 0 || separator == normalizedEmail.length() - 1) {
+            throw new IllegalArgumentException("The OAuth provider returned an invalid email address");
         }
+
+        return userRepository.findByEmailIgnoreCase(normalizedEmail)
+                .map(this::toDto)
+                .orElseGet(() -> {
+                    User user = new User();
+                    user.setEmail(normalizedEmail);
+                    user.setFullName(name == null || name.isBlank() ? normalizedEmail : name.trim());
+                    user.setUsername(uniqueUsername(preferredUsername, normalizedEmail));
+                    user.setRole(UserRole.USER);
+                    return toDto(userRepository.save(user));
+                });
+    }
+
+    private String uniqueUsername(String preferredUsername, String email) {
+        String base = preferredUsername == null || preferredUsername.isBlank()
+                ? email.substring(0, email.indexOf('@'))
+                : preferredUsername;
+        base = base.trim().replaceAll("[^A-Za-z0-9._-]", "-")
+                .replaceAll("^[._-]+|[._-]+$", "");
+        if (base.isBlank()) {
+            base = "user";
+        }
+        base = base.substring(0, Math.min(base.length(), 50));
+
+        String candidate = base;
+        int suffix = 2;
+        while (userRepository.existsByUsername(candidate)) {
+            String suffixText = "-" + suffix++;
+            candidate = base.substring(0, Math.min(base.length(), 50 - suffixText.length())) + suffixText;
+        }
+        return candidate;
     }
 
     @Transactional
-    public UserDto updateUser(UUID uuid, List<Map<String, Object>> changes) throws UserNotFoundException, UnsupportedPatchPathException, InvalidEnumStateException {
+    public UserDto updateUser(UUID uuid, List<Map<String, Object>> changes) throws UserNotFoundException, UnsupportedPatchPathException {
         // Buscar el usuario en la base de datos
         User user = userRepository.findById(uuid).orElseThrow( () -> new UserNotFoundException(uuid) );
 
         // Validar que las operaciones sean válidas
-        List<String> invalidPaths = JsonPatchValidation.validatePaths(List.of("/fullName", "/password", "/role"), changes);
-        List<List<String>> invalidStates = JsonPatchValidation.validateState(changes, UserRole.class, "/role");
+        List<String> invalidPaths = JsonPatchValidation.validatePaths(List.of("/fullName"), changes);
 
         // Si hay algún invalid path, lanzar una excepción
         if(!invalidPaths.isEmpty()){
             throw new UnsupportedPatchPathException(invalidPaths);
-        }
-
-        // Si hay algún estado inválido, lanzar una excepción
-        if(!invalidStates.isEmpty()){
-            throw new InvalidEnumStateException(invalidStates);
         }
 
         // Convertir el usuario a su DTO
@@ -116,15 +113,11 @@ public class UserService {
 
         // Aplicar todos los cambios pasados por JSON Patch
         JsonNode patched = patchUtils.applyPatch(mapper.convertValue(userDto, JsonNode.class), changes);
-        JsonNode node = mapper.convertValue(userDto, JsonNode.class);
 
         // Convertir el JSON Node de vuelta al DTO
         User updated = mapper.convertValue(patched, User.class);
 
-        // Aplicar los cambios del DTO al usuario de la BD. Solo puede cambiar el nombre, contraseña o rol
-        user.setFullName(userDto.fullName());
-        //user.setPassword(userDto.password());
-        user.setRole(userDto.role());
+        user.setFullName(updated.getFullName());
 
         // Actualizar el valor del usuario en la BD
         return toDto(userRepository.save(user));
@@ -134,7 +127,6 @@ public class UserService {
         return new UserDto(
                 user.getUuid(),
                 user.getUsername(),
-                //user.getPassword(),
                 user.getFullName(),
                 user.getEmail(),
                 user.getCoins(),
