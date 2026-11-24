@@ -44,6 +44,11 @@ dependencies {
 
     // Dependencias para OpenAPI
     implementation "org.springdoc:springdoc-openapi-starter-webmvc-scalar:3.2.0"
+
+    // Dependencias para Seguridad
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    testImplementation 'org.springframework.boot:spring-boot-starter-security-test'
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
 }
 
 tasks.named('test') {

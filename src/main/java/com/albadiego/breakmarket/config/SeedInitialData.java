@@ -60,7 +60,7 @@ public class SeedInitialData implements CommandLineRunner {
                 .orElseGet(() -> {
                     User user = new User();
                     user.setUsername("admin");
-                    user.setPassword("admin");
+                    //user.setPassword("admin");
                     user.setFullName("Administrador");
                     user.setEmail("admin@breakmarket.com");
                     user.setCoins(BigDecimal.valueOf(1000));
@@ -127,7 +127,7 @@ public class SeedInitialData implements CommandLineRunner {
                     .orElseGet(() -> {
                         User user = new User();
                         user.setUsername("tester");
-                        user.setPassword("tester");
+                        //user.setPassword("tester");
                         user.setFullName("Usuario de pruebas");
                         user.setEmail("tester@breakmarket.com");
                         user.setCoins(BigDecimal.valueOf(1000));
