@@ -19,6 +19,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Locale;
+import java.util.Set;
 
 @Configuration
 @EnableWebSecurity
@@ -64,10 +66,15 @@ public class SecurityConfig {
 
         converter.setJwtGrantedAuthoritiesConverter(jwt -> {
             var authorities = new ArrayList<>(scopesConverter.convert(jwt));
-            List<String> roles = jwt.getClaimAsStringList("https://breakmarket-api/roles");
-
-            if (roles != null) {
-                roles.forEach(role -> authorities.add(new SimpleGrantedAuthority("ROLE_" + role)));
+            Object rolesClaim = jwt.getClaims().get("https://breakmarket-api/roles");
+            if (rolesClaim instanceof List<?> roles) {
+                roles.stream()
+                        .filter(String.class::isInstance)
+                        .map(String.class::cast)
+                        .map(role -> role.trim().toUpperCase(Locale.ROOT))
+                        .filter(Set.of("ADMIN", "USER")::contains)
+                        .distinct()
+                        .forEach(role -> authorities.add(new SimpleGrantedAuthority("ROLE_" + role)));
             }
 
             return authorities;

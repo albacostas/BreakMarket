@@ -52,7 +52,7 @@ public class UserService {
     }
 
     @Transactional
-    public UserDto findOrCreateOAuthUser(String email, String name, String preferredUsername) {
+    public UserDto syncOAuthUser(String email, String name, String preferredUsername, UserRole role) {
         if (email == null || email.isBlank()) {
             throw new IllegalArgumentException("The OAuth provider did not return an email address");
         }
@@ -63,19 +63,20 @@ public class UserService {
             throw new IllegalArgumentException("The OAuth provider returned an invalid email address");
         }
 
-        return userRepository.findByEmailIgnoreCase(normalizedEmail)
-                .map(this::toDto)
-                .orElseGet(() -> {
-                    User user = new User();
-                    user.setEmail(normalizedEmail);
-                    user.setFullName(name == null || name.isBlank() ? normalizedEmail : name.trim());
-                    user.setUsername(uniqueUsername(preferredUsername, normalizedEmail));
-                    user.setRole(UserRole.USER);
-                    return toDto(userRepository.save(user));
-                });
+        if (role == null) {
+            throw new IllegalArgumentException("A valid Auth0 role is required");
+        }
+
+        User user = userRepository.findByEmailIgnoreCase(normalizedEmail)
+                .orElseGet(User::new);
+        user.setEmail(normalizedEmail);
+        user.setFullName(name == null || name.isBlank() ? normalizedEmail : name.trim());
+        user.setUsername(uniqueUsername(preferredUsername, normalizedEmail, user.getUuid()));
+        user.setRole(role);
+        return toDto(userRepository.save(user));
     }
 
-    private String uniqueUsername(String preferredUsername, String email) {
+    private String uniqueUsername(String preferredUsername, String email, UUID currentUserUuid) {
         String base = preferredUsername == null || preferredUsername.isBlank()
                 ? email.substring(0, email.indexOf('@'))
                 : preferredUsername;
@@ -88,7 +89,9 @@ public class UserService {
 
         String candidate = base;
         int suffix = 2;
-        while (userRepository.existsByUsername(candidate)) {
+        while (userRepository.findByUsername(candidate)
+                .filter(existing -> !existing.getUuid().equals(currentUserUuid))
+                .isPresent()) {
             String suffixText = "-" + suffix++;
             candidate = base.substring(0, Math.min(base.length(), 50 - suffixText.length())) + suffixText;
         }

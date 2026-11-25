@@ -141,20 +141,22 @@ public class EvidenceService {
     @Transactional
     public EvidenceDto review(UUID uuid, UUID reviewerUuid, String state) {
         User reviewer = requireUser(reviewerUuid);
-        if (state == null || (!"APPROVED".equalsIgnoreCase(state)
-                && !"REJECTED".equalsIgnoreCase(state))) {
-            throw new IllegalArgumentException("Review state must be APPROVED or REJECTED");
+        if (state == null || (!"VALIDATED".equalsIgnoreCase(state)
+                && !"NOT_ACCEPTED".equalsIgnoreCase(state))) {
+            throw new IllegalArgumentException("Review state must be VALIDATED or NOT_ACCEPTED");
         }
 
         // Comprobar si el UUID corresponde a una prueba existente
         Evidence evidence = evidenceRepository
                 .findById(uuid)
-                .orElseThrow( () -> new EvidenceNotFoundException(uuid));
+                .orElseThrow(() -> new EvidenceNotFoundException(uuid));
+        if (evidence.getState() != EvidenceState.PENDING) {
+            throw new IllegalArgumentException("Only pending evidence can be reviewed");
+        }
 
         evidence.setReviewer(reviewer);
         evidence.setReviewedDate(Instant.now());
-        // TODO - Cambiar, está mal
-        evidence.setState(EvidenceState.PENDING);
+        evidence.setState(Enum.valueOf(EvidenceState.class, state));
         return toDto(evidenceRepository.save(evidence));
     }
 

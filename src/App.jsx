@@ -8,6 +8,7 @@ import Auth from './pages/Auth'
 import CreateMarket from './pages/CreateMarket'
 import Portfolio from './pages/Portfolio'
 import Leaderboard from './pages/Leaderboard'
+import EvidenceReview from './pages/EvidenceReview'
 
 export default function App() {
   return (
@@ -22,6 +23,7 @@ export default function App() {
           <Route path="/create" element={<CreateMarket />} />
           <Route path="/portfolio" element={<Portfolio />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
+          <Route path="/evidence-review" element={<EvidenceReview />} />
         </Routes>
       </main>
       <BottomNav />

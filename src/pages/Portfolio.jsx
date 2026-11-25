@@ -27,7 +27,7 @@ export default function Portfolio() {
             <div className="bet-status-icon" aria-hidden="true"><Coins size={18} /></div>
             <div className="bet-row-main"><h3>{bet.market}</h3><p>{bet.option} · x{bet.odds.toFixed(2)}</p></div>
             <div className="bet-amount"><span>Apostado</span><strong>{bet.amount} 💔</strong></div>
-            {bet.status === 'RESOLVED' ? <b className={`result ${(bet.result || '').toLowerCase()}`}>{bet.result === 'WON' ? 'GANADA' : 'PERDIDA'}</b> : <div className="potential"><span>Retorno</span><strong>{bet.potential} 💔</strong></div>}
+            {bet.status === 'RESOLVED' ? <b className="result">RESUELTA</b> : <div className="potential"><span>Retorno</span><strong>{bet.potential} 💔</strong></div>}
           </article>
         )) : <div className="empty-state">No tienes apuestas en esta sección.</div>}
       </section>

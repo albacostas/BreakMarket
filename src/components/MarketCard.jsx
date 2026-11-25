@@ -8,7 +8,7 @@ export default function MarketCard({ market, featured = false }) {
   return (
     <article className={`market-card ${featured ? 'featured-card' : ''}`}>
       <div className="card-top">
-        <span className="category-tag">{market.categoryLabel}</span>
+        <span className="bet-type-tag">{market.typeLabel}</span>
         <span className="volume"><ArrowUpRight size={13} /> {market.volume.toLocaleString('es-ES')} 💔</span>
       </div>
       <div className="couple-avatars">

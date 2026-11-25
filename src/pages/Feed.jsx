@@ -4,13 +4,12 @@ import MarketCard from '../components/MarketCard'
 import { marketService } from '../services/api'
 
 const filters = [
-  ['todos', 'Todos'], ['rupturas', '💔 Rupturas'], ['cuernos', '🐍 Cuernos'],
-  ['lios', '💋 Líos/Besos'], ['fechas', '⏳ Fechas límite'],
+  ['ALL', 'Todos'], ['YES_NO', 'Sí / No'], ['PERSON', 'Por persona'], ['DATE', 'Por fecha'],
 ]
 
 export default function Feed() {
   const [markets, setMarkets] = useState([])
-  const [filter, setFilter] = useState('todos')
+  const [filter, setFilter] = useState('ALL')
   const [search, setSearch] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
@@ -19,7 +18,7 @@ export default function Feed() {
   useEffect(() => {
     setError('')
     setLoading(true)
-    marketService.list({ category: filter, search })
+    marketService.list({ type: filter, search })
       .then((data) => setMarkets(data))
       .catch(() => {
         setMarkets([])
@@ -33,7 +32,7 @@ export default function Feed() {
     return () => window.removeEventListener('bm-search', handler)
   }, [])
   useEffect(() => {
-    const refresh = () => marketService.list({ category: filter, search }).then(setMarkets).catch(() => setMarkets([]))
+    const refresh = () => marketService.list({ type: filter, search }).then(setMarkets).catch(() => setMarkets([]))
     window.addEventListener('bm-bet-placed', refresh)
     return () => window.removeEventListener('bm-bet-placed', refresh)
   }, [filter, search])
@@ -41,7 +40,7 @@ export default function Feed() {
   return (
     <div className="feed-page">
       <section className="flames-section" aria-labelledby="hot-markets">
-        <div className="section-heading"><div><Flame size={22} fill="currentColor" /><h2 id="hot-markets">Mesas en llamas</h2></div><button type="button" onClick={() => setFilter('todos')}>Ver todos <ChevronRight size={16} /></button></div>
+        <div className="section-heading"><div><Flame size={22} fill="currentColor" /><h2 id="hot-markets">Mesas en llamas</h2></div><button type="button" onClick={() => setFilter('ALL')}>Ver todos <ChevronRight size={16} /></button></div>
         <div className="flames-row">
           {markets.filter((m) => m.trending).slice(0, 3).map((m) => <MarketCard key={m.id} market={m} featured />)}
         </div>

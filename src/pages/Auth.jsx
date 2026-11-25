@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import { useLocation } from 'react-router-dom'
 
 export default function Auth() {
-  const { user, loading, error: sessionError, login, register, logout } = useAuth()
+  const { user, isAuthenticated, loading, error: sessionError, login, register, logout } = useAuth()
   const [actionError, setActionError] = useState('')
   const location = useLocation()
   const oauthError = new URLSearchParams(location.search).has('error')
@@ -31,12 +31,12 @@ export default function Auth() {
     <div className="auth-page">
       <section className="auth-card casino-panel">
         <div className="auth-logo"><Spade size={28} fill="currentColor" /></div>
-        <h1 className="gold-text">{user ? 'Sesión activa' : 'Acceso VIP'}</h1>
-        <p>{user ? `Bienvenido, ${user.username}.` : 'Entra a la sala, apuesta fichas y sigue el salseo en directo.'}</p>
+        <h1 className="gold-text">{isAuthenticated ? (user ? 'Sesión activa' : 'Cuenta conectada') : 'Acceso VIP'}</h1>
+        <p>{user ? `Bienvenido, ${user.username}.` : isAuthenticated ? 'Tu cuenta de OAuth está conectada.' : 'Entra a la sala, apuesta fichas y sigue el salseo en directo.'}</p>
         {oauthError && <div className="form-error" role="alert">No pudimos completar el acceso con tu proveedor. Inténtalo de nuevo.</div>}
-        {!user && sessionError && <div className="form-error" role="alert">{sessionError}</div>}
+        {isAuthenticated && sessionError && <div className="form-error" role="alert">{sessionError}</div>}
         {actionError && <div className="form-error" role="alert">{actionError}</div>}
-        {user ? (
+        {isAuthenticated ? (
           <button className="auth-submit" onClick={signOut}>Cerrar sesión <LogOut size={18} /></button>
         ) : (
           <>

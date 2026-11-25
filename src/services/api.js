@@ -30,7 +30,7 @@ const avatars = {
 
 export const mockMarkets = [
   {
-    id: 'lucia-marcos', category: 'rupturas', categoryLabel: 'Ruptura', status: 'OPEN',
+    id: 'lucia-marcos', type: 'YES_NO', typeLabel: 'Sí / No', status: 'OPEN',
     title: '¿Romperán Lucía y Marcos antes del 31/12?',
     personA: { name: 'Lucía', avatar: avatars.lucia }, personB: { name: 'Marcos', avatar: avatars.marcos },
     probability: 68, yesOdds: 1.45, noOdds: 2.80, volume: 18420, closing: '31 Dic, 23:59',
@@ -42,7 +42,7 @@ export const mockMarkets = [
     history: [52,54,55,57,56,60,58,63,65,64,67,68].map((probability, i) => ({ time: `${i + 8}:00`, probability })),
   },
   {
-    id: 'sara-hugo', category: 'cuernos', categoryLabel: 'Cuernos', status: 'OPEN',
+    id: 'sara-hugo', type: 'PERSON', typeLabel: 'Por persona', status: 'OPEN',
     title: '¿Quién es el tercero de Sara y Hugo?',
     personA: { name: 'Sara', avatar: avatars.sara }, personB: { name: 'Hugo', avatar: avatars.hugo },
     probability: 54, yesOdds: 1.85, noOdds: 2.10, volume: 9260, closing: '24 Dic, 20:00',
@@ -55,7 +55,7 @@ export const mockMarkets = [
     history: [38,41,39,44,47,43,49,51,50,52,55,54].map((probability, i) => ({ time: `${i + 8}:00`, probability })),
   },
   {
-    id: 'alex-valeria', category: 'lios', categoryLabel: 'Líos / Besos', status: 'OPEN',
+    id: 'alex-valeria', type: 'YES_NO', typeLabel: 'Sí / No', status: 'OPEN',
     title: '¿Alex y Valeria se liarán esta noche?',
     personA: { name: 'Alex', avatar: avatars.alex }, personB: { name: 'Valeria', avatar: avatars.valeria },
     probability: 72, yesOdds: 1.38, noOdds: 3.10, volume: 6730, closing: 'Hoy, 02:00',
@@ -67,7 +67,7 @@ export const mockMarkets = [
     history: [62,65,64,66,68,67,69,71,70,72,74,72].map((probability, i) => ({ time: `${i + 8}:00`, probability })),
   },
   {
-    id: 'paula-dani', category: 'fechas', categoryLabel: 'Fecha límite', status: 'OPEN',
+    id: 'paula-dani', type: 'DATE', typeLabel: 'Por fecha', status: 'OPEN',
     title: '¿Cuándo anunciará su ruptura Paula?',
     personA: { name: 'Paula', avatar: avatars.valeria }, personB: { name: 'Dani', avatar: avatars.hugo },
     probability: 46, yesOdds: 2.20, noOdds: 1.90, volume: 4150, closing: '30 Ene, 00:00',
@@ -104,6 +104,12 @@ const formatClosingDate = (value) => {
   return new Intl.DateTimeFormat('es-ES', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(value))
 }
 
+const betTypeLabels = {
+  YES_NO: 'Sí / No',
+  PERSON: 'Por persona',
+  DATE: 'Por fecha',
+}
+
 const normalizeMarket = (bet, couple, options = []) => {
   const members = couple?.members || []
   const personA = members[0] || { fullName: 'Persona A' }
@@ -128,8 +134,8 @@ const normalizeMarket = (bet, couple, options = []) => {
   const secondOption = normalizedOptions[1]
   return {
     id: bet.uuid,
-    category: bet.type === 'YES_NO' ? 'rupturas' : bet.type === 'PERSON' ? 'cuernos' : 'fechas',
-    categoryLabel: bet.type === 'YES_NO' ? 'Ruptura' : bet.type === 'PERSON' ? 'Cuernos' : 'Fecha límite',
+    type: bet.type,
+    typeLabel: betTypeLabels[bet.type] || bet.type,
     status: bet.state,
     title: bet.description,
     personA: { name: personA.fullName, avatar: avatarFor(personA.fullName) },
@@ -148,12 +154,11 @@ const normalizeMarket = (bet, couple, options = []) => {
 }
 
 const getBackendMarkets = async (params = {}) => {
-  const typeByCategory = { rupturas: 'YES_NO', cuernos: 'PERSON', fechas: 'DATE' }
   const { data: bets } = await api.get('/bets', {
     params: {
       state: 'ACTIVE',
       description: params.search || undefined,
-      type: typeByCategory[params.category] || undefined,
+      type: params.type && params.type !== 'ALL' ? params.type : undefined,
     },
   })
   return Promise.all(bets.map(async (bet) => {
@@ -171,7 +176,7 @@ export const marketService = {
     catch (error) {
       if (!useMocks) throw error
       let data = mockMarkets
-      if (params.category && params.category !== 'todos') data = data.filter(m => m.category === params.category)
+      if (params.type && params.type !== 'ALL') data = data.filter(m => m.type === params.type)
       if (params.search) data = data.filter(m => m.title.toLowerCase().includes(params.search.toLowerCase()))
       return data
     }
@@ -193,40 +198,61 @@ export const marketService = {
     const { data } = await api.post('/bets', {
       creatorUuid: payload.creatorUuid,
       coupleUuid: payload.coupleUuid,
-      type: payload.market_type === 'binary' ? 'YES_NO' : payload.market_type === 'person' ? 'PERSON' : 'DATE',
+      type: payload.type,
       description: payload.title,
-      endDate: payload.closes_at || null,
+      endDate: payload.closes_at ? new Date(payload.closes_at).toISOString() : undefined,
       options: payload.options,
     })
     return data
   },
-  resolve: async (id, winningOptionId) => {
-    throw new Error(`El backend actual no expone resolución de mercados. Opción solicitada: ${winningOptionId} en ${id}`)
-  },
 }
 
-export const commentService = {
-  list: async (id) => {
+export const evidenceService = {
+  listForBet: async (id) => {
     try {
       const { data } = await api.get(`/bets/${id}/evidence`)
-      return data.map(item => ({ id: item.uuid, author: item.authorUuid, avatar: avatarFor(item.authorUuid), text: item.comment, upvotes: 0, time: formatClosingDate(item.submittedDate) }))
+      return data.map(item => ({
+        id: item.uuid,
+        author: item.authorUuid,
+        avatar: avatarFor(item.authorUuid),
+        text: item.comment,
+        state: item.state,
+        time: formatClosingDate(item.submittedDate),
+      }))
     } catch (error) {
-      if (useMocks) return mockComments
+      if (useMocks) return mockComments.map(item => ({ ...item, state: 'PENDING' }))
       throw error
     }
   },
-  add: async (id, text, authorUUID) => {
+  submit: async (id, text, authorUUID) => {
     const { data } = await api.post(`/bets/${id}/evidence`, { authorUUID, comment: text })
-    return { id: data.uuid, author: data.authorUuid, avatar: avatarFor(data.authorUuid), text: data.comment, upvotes: 0, time: 'ahora' }
-  },
-  activity: async (id) => {
-    try {
-      const { data } = await api.get(`/bets/${id}/tickets`)
-      return data.map(item => ({ id: item.uuid, user: item.userUuid, amount: item.quantity, option: item.optionUuid, odds: item.rate, time: formatClosingDate(item.createdDate) }))
-    } catch (error) {
-      if (useMocks) return mockActivity
-      throw error
+    return {
+      id: data.uuid,
+      author: data.authorUuid,
+      avatar: avatarFor(data.authorUuid),
+      text: data.comment,
+      state: data.state,
+      time: formatClosingDate(data.submittedDate),
     }
+  },
+  pending: async () => (await api.get('/evidence', { params: { state: 'PENDING' } })).data,
+  review: async (uuid, reviewerUuid, state) => (
+    await api.patch(`/evidence/${uuid}/review`, null, { params: { reviewerUuid, state } })
+  ).data,
+}
+
+export const ticketService = {
+  listForBet: async (id) => {
+    const { data } = await api.get(`/bets/${id}/tickets`)
+    return data.map(item => ({
+      id: item.uuid,
+      user: item.userUuid,
+      amount: item.quantity,
+      option: item.optionUuid,
+      rate: Number(item.rate),
+      createdDate: item.createdDate,
+      time: formatClosingDate(item.createdDate),
+    }))
   },
 }
 
@@ -263,12 +289,17 @@ export const betService = {
           amount: ticket.quantity,
           odds: ticket.rate,
           potential: Number((ticket.quantity * ticket.rate).toFixed(2)),
-          result: ticket.state === 'REDEEMED' ? 'WON' : undefined,
           status: ticket.state === 'PENDING' ? 'ACTIVE' : 'RESOLVED',
         }
       })
     }))).flat()
-    return tickets
+    return tickets.filter((ticket) => status === 'resolved'
+      ? ticket.status === 'RESOLVED'
+      : ticket.status === 'ACTIVE')
+  },
+  resolveTicket: async (ticketUuid, state) => {
+    const { data } = await api.patch(`/bets/tickets/${ticketUuid}/resolve`, null, { params: { state } })
+    return data
   },
 }
 
@@ -306,6 +337,11 @@ export const userService = {
 
 export const personService = {
   create: async (fullName) => (await api.post('/people', { fullName })).data,
+  findOrCreate: async (fullName) => {
+    const { data: matches } = await api.get('/people', { params: { fullName } })
+    const existing = matches.find((person) => person.fullName.trim().toLocaleLowerCase() === fullName.trim().toLocaleLowerCase())
+    return existing || personService.create(fullName)
+  },
 }
 
 export const coupleService = {
